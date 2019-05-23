@@ -395,16 +395,17 @@ db_error_t xugusql_drv_query(db_conn_t *sb_conn,
     stu_xugusql_conn                    *db_conn;
 
     (void)len;
-    (void)rs;
 
     if((db_conn = (stu_xugusql_conn *)sb_conn->ptr) == NULL){
         return DB_ERROR_FATAL;
     }
 
+    rs->counter = get_query_type(query);
+
     snl = XGCIHandleAlloc(db_conn->session, &statement, HT_STATEMENT);
     snl = XGCIExecDirect(statement, (char*)query, XGCI_NTS);
     if(snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
-        return DB_ERROR_FATAL;
+        rs->counter = SB_CNT_ERROR;
     }
 
     snl = XGCIHandleFree(statement);
