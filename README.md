@@ -42,7 +42,7 @@ sysbench comes with the following bundled benchmarks:
     make install
 ```
 
-##runing
+## Running Syntax
 ``` shell
     # xuguSQL
     sysbench /opt/sysbench/share/sysbench/oltp_write_only.lua
@@ -52,62 +52,6 @@ sysbench comes with the following bundled benchmarks:
     --report-interval=10 --time=100
 ```
 
-
-The above will build sysbench with MySQL support by default. If you have
-MySQL headers and libraries in non-standard locations (and no
-`mysql_config` can be found in the `PATH`), you can specify them
-explicitly with `--with-mysql-includes` and `--with-mysql-libs` options
-to `./configure`.
-
-To compile sysbench without MySQL support, use `--without-mysql`. If no
-database drivers are available database-related scripts will not work,
-but other benchmarks will be functional.
-
-## General Syntax
-
-The general command line syntax for sysbench is:
-
-		  sysbench [options]... [testname] [command] 
-
-- *testname* is an optional name of a built-in test (e.g. `fileio`,
-  `memory`, `cpu`, etc.), or a name of one of the bundled Lua scripts
-  (e.g. `oltp_read_only`), or a *path* to a custom Lua script. If no
-  test name is specified on the command line (and thus, there is no
-  *command* too, as in that case it would be parsed as a *testname*), or
-  the test name is a dash ("`-`"), then sysbench expects a Lua script to
-  execute on its standard input.
-
-- *command* is an optional argument that will be passed by sysbench to
-  the built-in test or script specified with *testname*. *command*
-  defines the *action* that must be performed by the test. The list of
-  available commands depends on a particular test. Some tests also
-  implement their own custom commands.
-
-  Below is a description of typical test commands and their purpose:
-
-	+ `prepare`: performs preparative actions for those tests which need
-	them, e.g. creating the necessary files on disk for the `fileio`
-	test, or filling the test database for database benchmarks.
-	+ `run`: runs the actual test specified with the *testname*
-    argument. This command is provided by all tests.
-	+ `cleanup`: removes temporary data after the test run in those
-    tests which create one.
-	+ `help`: displays usage information for the test specified with the
-	*testname* argument. This includes the full list of commands
-	provided by the test, so it should be used to get the available
-	commands.
-
-- *options* is a list of zero or more command line options starting with
-	`'--'`. As with commands, the `sysbench testname help` command
-	should be used to describe available options provided by a
-	particular test.
-
-	See [General command line options](README.md#general-command-line-options)
-	for a description of general options provided by sysbench itself.
-
-
-You can use `sysbench --help` to display the general command line syntax
-and options.
 
 ## General Command Line Options
 
