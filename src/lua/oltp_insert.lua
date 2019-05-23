@@ -50,6 +50,10 @@ function event()
       con:query(string.format("INSERT INTO %s (k, c, pad) VALUES " ..
                                  "(%d, '%s', '%s')",
                               table_name, k_val, c_val, pad_val))
+   elseif (drv:name() == "xugusql" and sysbench.opt.auto_inc) then
+      con:query(string.format("INSERT INTO %s (k, c, pad) VALUES " ..
+                                 "(%d, '%s', '%s')",
+                              table_name, k_val, c_val, pad_val))
    else
       if (sysbench.opt.auto_inc) then
          i = 0
