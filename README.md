@@ -37,7 +37,7 @@ sysbench comes with the following bundled benchmarks:
     # you must either specify file locations explicitly using
     # --with-xugusql-includes and --with-xugusql-libs options
     # 
-    ./configure
+    ./configure [options...]
     make 
     make install
 ```
@@ -47,29 +47,8 @@ sysbench comes with the following bundled benchmarks:
     # xuguSQL
     sysbench /opt/sysbench/share/sysbench/oltp_write_only.lua
     --xugusql-ip=127.0.0.1 --xugusql-port=5138 --xugusql-db=SYSTEM
-    --xugusql-uid=SYSDBA --xugusql-pwd=SYSDBA
-    --threads=8 --xugusql-cursor=0 --tables=1 --table-size=10000000
-    --report-interval=10 --time=100
+    --xugusql-uid=SYSDBA --xugusql-pwd=SYSDBA --xugusql-cursor=0
+    --threads=8 --tables=1 --table-size=10000000 --report-interval=10 --time=100
 ```
 
-
-## General Command Line Options
-
-The table below lists the supported common options, their descriptions and default values:
-
-*Option*              | *Description* | *Default value*
-----------------------|---------------|----------------
-| `--threads`           | The total number of worker threads to create                                                                                                                                                                                                                                                                                                                                                                                                                            | 1               |
-| `--events`            | Limit for total number of requests. 0 (the default) means no limit                                                                                                                                                                                                                                                                                                                                                                                                      | 0               |
-| `--time`              | Limit for total execution time in seconds. 0 means no limit                                                                                                                                                                                                                                                                                                                                                                                                             | 10              |
-| `--rate`              | Average transactions rate. The number specifies how many events (transactions) per seconds should be executed by all threads on average. 0 (default) means unlimited rate, i.e. events are executed as fast as possible                                                                                                                                                                                                                                                                 | 0               |
-| `--thread-stack-size` | Size of stack for each thread                                                                                                                                                                                                                                                                                                                                                                                                                                           | 32K             |
-| `--report-interval`   | Periodically report intermediate statistics with a specified interval in seconds. Note that statistics produced by this option is per-interval rather than cumulative. 0 disables intermediate reports                                                                                                                                                                                                                                                                  | 0               |
-| `--debug`             | Print more debug info                                                                                                                                                                                                                                                                                                                                                                                                                                                   | off             |
-| `--validate`          | Perform validation of test results where possible                                                                                                                                                                                                                                                                                                                                                                                                                       | off             |
-| `--help`              | Print help on general syntax or on a test mode specified with --test, and exit                                                                                                                                                                                                                                                                                                                                                                                          | off             |
-| `--verbosity`         | Verbosity level (0 - only critical messages, 5 - debug)                                                                                                                                                                                                                                                                                                                                                                                                                 | 4               |
-| `--percentile`        | sysbench measures execution times for all processed requests to display statistical information like minimal, average and maximum execution time. For most benchmarks it is also useful to know a request execution time value matching some percentile (e.g. 95% percentile means we should drop 5% of the most long requests and choose the maximal value from the remaining ones). This option allows to specify a percentile rank of query execution times to count | 95              |
-
-Note that numerical values for all *size* options (like `--thread-stack-size` in this table) may be specified by appending the corresponding multiplicative suffix (K for kilobytes, M for megabytes, G for gigabytes and T for terabytes).
 
