@@ -34,10 +34,11 @@ sysbench comes with the following bundled benchmarks:
 ``` shell
     ./autogen.sh
     # Add --with-xugusql to build with XuguSQL support
-    # you must either specify file locations explicitly using
-    # --with-xugusql-includes and --with-xugusql-libs options
     # 
     ./configure [options...]
+    # [example]Join xugu driver support:
+    # ./configure --prefix=/opt/sysbench --without-mysql --with-xugusql
+    #       --with-xugusql-libs=/usr/lib64 --with-xugusql-includes=/usr/include
     make 
     make install
 ```
