@@ -363,7 +363,7 @@ int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
     {   
         stmt->counter = get_query_type(query);
         if(SB_CNT_READ == stmt->counter){
-            if(sb_get_value_int("with-cursor")){
+            if(sb_get_value_int("xugusql-cursor")){
                 db_stmt->use_server_cursor = USE_SERVER_CURSOR;
             }else{
                 db_stmt->use_server_cursor = USE_NOT_SERVER_CUR;
