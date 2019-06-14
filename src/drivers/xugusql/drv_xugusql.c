@@ -44,6 +44,7 @@ typedef struct{
 static sb_arg_t xugusql_drv_args[] =
 {
   SB_OPT("xugusql-ip", "XuguDB IP Address", "127.0.0.1", STRING),
+  SB_OPT("xugusql-ips", "XuguDB Turn ip", "x.x.x.x", STRING),
   SB_OPT("xugusql-port", "XuguDB Port", "5138", INT),
   SB_OPT("xugusql-db", "XuguDB Name", "SYSTEM", STRING),
   SB_OPT("xugusql-uid", "XuguSQL user", "SYSDBA", STRING),
@@ -153,6 +154,7 @@ typedef struct {
 /* xugusql driver initialization parameters */
 typedef struct {
     int     arg_port_number;
+    int     ck;
     char    *arg_ip_address;
     char    *arg_db_name;
     char    *arg_user_id;
@@ -188,15 +190,28 @@ static sb_counter_type_t get_query_type(const char *query);
 /* initializate driver */
 int xugusql_drv_init(void)
 {
+    char            model[] = "x.x.x.x";
+    char           *server_sock_ips, *server_sock_ip;
+
+
     if(db_globals.ps_mode != DB_PS_MODE_DISABLE){
         glob_use_ps = 1;
     }
 
-    glob_args.arg_ip_address = sb_get_value_string("xugusql-ip");
+    server_sock_ip = sb_get_value_string("xugusql-ip");
+    server_sock_ips = sb_get_value_string("xugusql-ips");
     glob_args.arg_port_number = sb_get_value_int("xugusql-port");
     glob_args.arg_db_name = sb_get_value_string("xugusql-db");
     glob_args.arg_user_id = sb_get_value_string("xugusql-uid");
     glob_args.arg_password = sb_get_value_string("xugusql-pwd");
+
+    if(!strcmp(server_sock_ips, model)){
+        glob_args.ck = 0;
+        glob_args.arg_ip_address = server_sock_ip;
+    }else{
+        glob_args.ck = 1;
+        glob_args.arg_ip_address = server_sock_ips;
+    }
 
     glob_attr.attr_version = XGCI_ATTR_ENV_VERSION;
     glob_attr.attr_conn_pool = 0;
@@ -213,19 +228,24 @@ int xugusql_drv_init(void)
 /* connect to database */
 int xugusql_drv_connect(db_conn_t *sb_conn)
 {
-    int                                 snl;
-    stu_xugusql_conn                    *db_conn;
+    int                  snl, attr_server_sock;
+    stu_xugusql_conn    *db_conn;
 
     db_conn = (stu_xugusql_conn *)calloc(1, sizeof(stu_xugusql_conn));
     if(db_conn == NULL){
         return 1;
     }
 
+    attr_server_sock = XGCI_ATTR_SRV_IP;
+    if(glob_args.ck){
+        attr_server_sock = XGCI_ATTR_SRV_TURN_IPS;
+    }
+
     snl = XGCIHandleAlloc(NULL, &db_conn->environment, HT_ENV);
     snl = XGCIHandleAttrSet(db_conn->environment, XGCI_ATTR_ENV_VERSION, &glob_attr.attr_version, XGCI_NTS);
     snl = XGCIHandleAttrSet(db_conn->environment, XGCI_ATTR_ENV_USE_POOL, &glob_attr.attr_conn_pool, XGCI_NTS);
     snl = XGCIHandleAlloc(db_conn->environment, &db_conn->server, HT_SERVER);
-    snl = XGCIHandleAttrSet(db_conn->server, XGCI_ATTR_SRV_IP, glob_args.arg_ip_address, XGCI_NTS);
+    snl = XGCIHandleAttrSet(db_conn->server, attr_server_sock, glob_args.arg_ip_address, XGCI_NTS);
     snl = XGCIHandleAttrSet(db_conn->server, XGCI_ATTR_SRV_PORT, &glob_args.arg_port_number, XGCI_NTS);
     snl = XGCIHandleAttrSet(db_conn->server, XGCI_ATTR_SRV_DBNAME, glob_args.arg_db_name, XGCI_NTS);
     snl = XGCIHandleAlloc(db_conn->server, &db_conn->session, HT_SESSION);
@@ -251,8 +271,8 @@ int xugusql_drv_connect(db_conn_t *sb_conn)
 /* disconnect from database */
 int xugusql_drv_disconnect(db_conn_t *sb_conn)
 {
-    int                                 snl;
-    stu_xugusql_conn                    *db_conn;
+    int                  snl;
+    stu_xugusql_conn    *db_conn;
 
     if(sb_conn->ptr == NULL) {
         return 1;
@@ -277,8 +297,8 @@ int xugusql_drv_disconnect(db_conn_t *sb_conn)
 /* reconnect with the same parameters */
 int xugusql_drv_reconnect(db_conn_t *sb_conn)
 {
-    int                                 snl;
-    stu_xugusql_conn                    *db_conn;
+    int                  snl;
+    stu_xugusql_conn    *db_conn;
 
     if(sb_conn->ptr == NULL) {
         return 1;
@@ -298,12 +318,12 @@ int xugusql_drv_reconnect(db_conn_t *sb_conn)
 /* prepare statement */
 int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
 {
-    int                                 snl;
-    int                                 i, autocommit;
-    size_t                              param_cnt;
-    db_conn_t                           *sb_conn;
-    stu_xugusql_conn                    *db_conn;
-    stu_xugusql_stmt                    *db_stmt;
+    int                  snl;
+    int                  i, autocommit;
+    size_t               param_cnt;
+    db_conn_t           *sb_conn;
+    stu_xugusql_conn    *db_conn;
+    stu_xugusql_stmt    *db_stmt;
 
     (void)len;
 
@@ -390,9 +410,9 @@ int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
 db_error_t xugusql_drv_query(db_conn_t *sb_conn, 
                 const char *query, size_t len, db_result_t *rs)
 {
-    int                                 snl;
-    XGCIHANDLE                          statement;
-    stu_xugusql_conn                    *db_conn;
+    int                  snl;
+    XGCIHANDLE           statement;
+    stu_xugusql_conn    *db_conn;
 
     (void)len;
 
@@ -417,11 +437,11 @@ db_error_t xugusql_drv_query(db_conn_t *sb_conn,
 /* bind params for prepared statement */
 int xugusql_drv_bind_param(db_stmt_t *stmt, db_bind_t *params, size_t len)
 {
-    int                                 snl;
-    int                                 rcode;
-    unsigned int                        i;
-    stu_xugusql_stmt                    *db_stmt;
-    stu_xugusql_bind_map                bind_map;
+    int                    snl;
+    int                    rcode;
+    unsigned int           i;
+    stu_xugusql_stmt      *db_stmt;
+    stu_xugusql_bind_map   bind_map;
 
     if((db_stmt = (stu_xugusql_stmt *)stmt->ptr) == NULL){
         return 1;
@@ -453,10 +473,10 @@ int xugusql_drv_bind_param(db_stmt_t *stmt, db_bind_t *params, size_t len)
 /* execute prepared statement */
 db_error_t xugusql_drv_execute(db_stmt_t *stmt, db_result_t *rs)
 {
-    int                                 snl;
-    unsigned int                        rcode;
-    stu_xugusql_stmt                    *db_stmt;
-    db_row_t                            *row;
+    int                    snl;
+    unsigned int           rcode;
+    stu_xugusql_stmt      *db_stmt;
+    db_row_t              *row;
 
     if((db_stmt = (stu_xugusql_stmt *)stmt->ptr)  == NULL){
         return DB_ERROR_FATAL;
@@ -513,8 +533,8 @@ db_error_t xugusql_drv_execute(db_stmt_t *stmt, db_result_t *rs)
 /* close prepared statement */
 int xugusql_drv_close(db_stmt_t *stmt)
 {
-    int                                 snl;
-    stu_xugusql_stmt                    *db_stmt;
+    int                    snl;
+    stu_xugusql_stmt      *db_stmt;
 
     if(stmt == NULL || (db_stmt = (stu_xugusql_stmt *)stmt->ptr)  == NULL){
         return 1;
@@ -558,7 +578,7 @@ int xugusql_drv_bind_result(db_stmt_t *stmt, db_bind_t *params, size_t len)
 /* free result set */
 int xugusql_drv_free_results(db_result_t *rs)
 {
-    uint32_t                            i;
+    uint32_t               i;
 
     if(rs->row.ptr != NULL){
         free(rs->row.ptr);
@@ -581,8 +601,8 @@ int xugusql_drv_free_results(db_result_t *rs)
 
 /* fetch row for prepared statement */
 int xugusql_drv_fetch(db_result_t *rs){
-    int                                 snl;
-    stu_xugusql_stmt                    *db_stmt;
+    int                    snl;
+    stu_xugusql_stmt      *db_stmt;
     
     if(rs->statement == NULL){
         return 1;
@@ -604,14 +624,14 @@ int xugusql_drv_fetch(db_result_t *rs){
 /* fetch row for queries */
 int xugusql_drv_fetch_row(db_result_t *rs, db_row_t *row)
 {
-    int                                 snl, rc, acl;
-    uint32_t                            i;
-    unsigned int                        rcode;
-    void                                *tmp;
-    int                                 *ctype;
-    db_stmt_t                           *stmt;
-    stu_xugusql_stmt                      *db_stmt;
-    db_value_t                          *value;
+    int                    snl, rc, acl;
+    uint32_t               i;
+    unsigned int           rcode;
+    void                  *tmp;
+    int                   *ctype;
+    db_stmt_t             *stmt;
+    stu_xugusql_stmt      *db_stmt;
+    db_value_t            *value;
 
     if((stmt = rs->statement) == NULL){
         return 1;
@@ -709,7 +729,7 @@ sb_counter_type_t get_query_type(const char *query)
 /* get bind type map */
 stu_xugusql_bind_map get_bind_type(db_bind_type_t type)
 {
-    unsigned int                        i;
+    unsigned int           i;
 
     for(i = 0; xugusql_bind_map[i].map_db_type != DB_TYPE_NONE; i++){
         if(xugusql_bind_map[i].map_db_type != type){
