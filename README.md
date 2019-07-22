@@ -48,7 +48,7 @@ sysbench comes with the following bundled benchmarks:
     # xuguSQL
     sysbench /opt/sysbench/share/sysbench/oltp_write_only.lua
     --xugusql-ip=127.0.0.1 --xugusql-port=5138 --xugusql-db=SYSTEM --xugusql-uid=SYSDBA --xugusql-pwd=SYSDBA 
-    --xugusql-cursor=0 --threads=8 --tables=1 --table-size=10000000 --report-interval=10 --time=100
+    --xugusql-cursor=0 --xugusql-auto-commit=1 --threads=8 --tables=1 --table-size=10000000 --report-interval=10 --time=100
 ```
 
 
