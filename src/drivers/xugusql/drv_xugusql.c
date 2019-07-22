@@ -319,8 +319,7 @@ int xugusql_drv_reconnect(db_conn_t *sb_conn)
 /* prepare statement */
 int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
 {
-    int                  snl;
-    int                  i, autocommit;
+    int                  snl, i;
     size_t               param_cnt;
     db_conn_t           *sb_conn;
     stu_xugusql_conn    *db_conn;
@@ -472,7 +471,12 @@ db_error_t xugusql_drv_execute(db_stmt_t *stmt, db_result_t *rs)
         return DB_ERROR_FATAL;
     }
 
-    snl = XGCIExecute(db_stmt->stmt);
+    if(SB_CNT_OTHER == stmt->counter){
+        snl = XGCIExecDirect(db_stmt->stmt, stmt->query, XGCI_NTS);
+    }else{
+        snl = XGCIExecute(db_stmt->stmt);
+    }
+
     if (snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
         rs->counter = SB_CNT_ERROR;
         return DB_ERROR_NONE;
