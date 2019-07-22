@@ -50,6 +50,7 @@ static sb_arg_t xugusql_drv_args[] =
   SB_OPT("xugusql-uid", "XuguSQL user", "SYSDBA", STRING),
   SB_OPT("xugusql-pwd", "XuguSQL password", "SYSDBA", STRING),
   SB_OPT("xugusql-cursor", "Whether to enable server cursors", "0", STRING),
+  SB_OPT("xugusql-auto-commit", "Automatic submission switch, default is auto-commit", "1", INT),
 
   SB_OPT_END  
 };
@@ -204,6 +205,7 @@ int xugusql_drv_init(void)
     glob_args.arg_db_name = sb_get_value_string("xugusql-db");
     glob_args.arg_user_id = sb_get_value_string("xugusql-uid");
     glob_args.arg_password = sb_get_value_string("xugusql-pwd");
+    glob_attr.attr_autocommit = sb_get_value_int("xugusql-auto-commit");
 
     if(!strcmp(server_sock_ips, model)){
         glob_args.ck = 0;
@@ -219,7 +221,6 @@ int xugusql_drv_init(void)
     glob_attr.attr_iso_level = XGCI_ISO_READCOMMIT;
     glob_attr.attr_ssl = XGCI_USESSL_FALSE;
     glob_attr.attr_charset = XGCI_CHARSET_GBK;
-    glob_attr.attr_autocommit = XGCI_AUTOCOMMIT_ON;
 
     return 0;
 }
@@ -360,25 +361,6 @@ int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
         return 1;
     }
 
-    if(!strcasecmp(query, "begin")){
-       snl = XGCIHandleAttrGet(db_stmt->stmt, 
-            XGCI_ATTR_SESS_AUTO_COMMIT, &autocommit, sizeof(int));
-
-       if(autocommit == XGCI_AUTOCOMMIT_ON){
-           snl = XGCIExecDirect(db_stmt->stmt, "set auto_commit off", XGCI_NTS);
-           if(snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
-               return 1;
-           }
-       }
-       stmt->ptr = (void *)db_stmt;
-       return 0;
-    }
-
-    if(!strcasecmp(query, "commit")){
-       stmt->ptr = (void *)db_stmt;
-       return 0;
-    }
-
     if(glob_use_ps) 
     {   
         stmt->counter = get_query_type(query);
@@ -394,12 +376,16 @@ int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
                     &db_stmt->use_server_cursor, XGCI_NTS);
         }
 
+        if(SB_CNT_OTHER == stmt->counter){
+            goto next;
+        }
+
         snl = XGCIPrepare(db_stmt->stmt, stmt->query, XGCI_NTS);
         if(snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
             return 1;
         }
     }
-
+next:
     stmt->ptr = (void*)db_stmt;
 
     return 0;
@@ -484,28 +470,6 @@ db_error_t xugusql_drv_execute(db_stmt_t *stmt, db_result_t *rs)
 
     if(stmt->query == NULL){
         return DB_ERROR_FATAL;
-    }
-
-    if(!strcasecmp(stmt->query, "begin")){
-        snl = XGCIExecDirect(db_stmt->stmt, "begin", XGCI_NTS);
-        if(snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
-            return DB_ERROR_FATAL;
-        }
-        return DB_ERROR_NONE;
-    }
-
-    if(!strcasecmp(stmt->query, "commit")){
-        snl = XGCIExecDirect(db_stmt->stmt, "commit", XGCI_NTS);
-        if(snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
-            return DB_ERROR_FATAL;
-        }
-        
-        snl = XGCIExecDirect(db_stmt->stmt, "set auto_commit on", XGCI_NTS);
-        if(snl != XGCI_SUCCESS && snl != XGCI_SUCCESS_WITH_INFO){
-            return DB_ERROR_FATAL;
-        }
-        
-        return DB_ERROR_NONE;
     }
 
     snl = XGCIExecute(db_stmt->stmt);
