@@ -1,0 +1,267 @@
+libsbxugusql_a-drv_xugusql.o: drv_xugusql.c /usr/include/stdc-predef.h \
+ ../../../config/config.h /usr/include/string.h /usr/include/features.h \
+ /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
+ /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stddef.h \
+ /usr/include/xlocale.h /usr/include/strings.h /usr/local/include/xgci2.h \
+ /usr/include/ctype.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/endian.h \
+ /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
+ /usr/include/bits/byteswap-16.h ../../../src/sb_options.h \
+ /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/wchar.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdbool.h \
+ ../../../src/sb_list.h ../../../src/db_driver.h ../../../src/sysbench.h \
+ /usr/include/stdlib.h /usr/include/bits/waitflags.h \
+ /usr/include/bits/waitstatus.h /usr/include/sys/types.h \
+ /usr/include/time.h /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/sigset.h /usr/include/bits/time.h \
+ /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-float.h \
+ /usr/include/unistd.h /usr/include/bits/posix_opt.h \
+ /usr/include/bits/environments.h /usr/include/bits/confname.h \
+ /usr/include/getopt.h /usr/include/pthread.h /usr/include/sched.h \
+ /usr/include/bits/sched.h /usr/include/bits/timex.h \
+ /usr/include/bits/setjmp.h ../../../src/sb_options.h \
+ ../../../src/sb_timer.h /usr/include/sys/time.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h ../../../src/sb_util.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_md.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_cc.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/gcc/ck_cc.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_spinlock.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/anderson.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_limits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/limits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_pr.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_stdint.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_stdbool.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/gcc/x86_64/ck_pr.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/gcc/x86_64/ck_f_pr.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/gcc/ck_pr.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/cas.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_backoff.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_elide.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_string.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/clh.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/ck_stddef.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/dec.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/fas.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/hclh.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/mcs.h \
+ /home/git/sysbench/third_party/concurrency_kit/include/spinlock/ticket.h \
+ ../../../src/sb_logger.h ../../../src/sb_histogram.h \
+ ../../../src/tests/sb_cpu.h ../../../src/tests/sb_fileio.h \
+ ../../../src/tests/sb_memory.h ../../../src/tests/sb_threads.h \
+ ../../../src/tests/sb_mutex.h ../../../src/sb_counter.h \
+ /usr/include/inttypes.h ../../../src/sb_ck_pr.h
+
+/usr/include/stdc-predef.h:
+
+../../../config/config.h:
+
+/usr/include/string.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stddef.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/strings.h:
+
+/usr/local/include/xgci2.h:
+
+/usr/include/ctype.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/bits/byteswap-16.h:
+
+../../../src/sb_options.h:
+
+/usr/include/stdio.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdbool.h:
+
+../../../src/sb_list.h:
+
+../../../src/db_driver.h:
+
+../../../src/sysbench.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/bits/waitflags.h:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/time.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/alloca.h:
+
+/usr/include/bits/stdlib-float.h:
+
+/usr/include/unistd.h:
+
+/usr/include/bits/posix_opt.h:
+
+/usr/include/bits/environments.h:
+
+/usr/include/bits/confname.h:
+
+/usr/include/getopt.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/bits/sched.h:
+
+/usr/include/bits/timex.h:
+
+/usr/include/bits/setjmp.h:
+
+../../../src/sb_options.h:
+
+../../../src/sb_timer.h:
+
+/usr/include/sys/time.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+../../../src/sb_util.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_md.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_cc.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/gcc/ck_cc.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_spinlock.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/anderson.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_limits.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/limits.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
+
+/usr/include/bits/xopen_lim.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_pr.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_stdint.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_stdbool.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/gcc/x86_64/ck_pr.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/gcc/x86_64/ck_f_pr.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/gcc/ck_pr.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/cas.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_backoff.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_elide.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_string.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/clh.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/ck_stddef.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/dec.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/fas.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/hclh.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/mcs.h:
+
+/home/git/sysbench/third_party/concurrency_kit/include/spinlock/ticket.h:
+
+../../../src/sb_logger.h:
+
+../../../src/sb_histogram.h:
+
+../../../src/tests/sb_cpu.h:
+
+../../../src/tests/sb_fileio.h:
+
+../../../src/tests/sb_memory.h:
+
+../../../src/tests/sb_threads.h:
+
+../../../src/tests/sb_mutex.h:
+
+../../../src/sb_counter.h:
+
+/usr/include/inttypes.h:
+
+../../../src/sb_ck_pr.h:

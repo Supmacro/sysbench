@@ -1,6 +1,6 @@
 /*
 ** Lua parser (source code -> bytecode).
-** Copyright (C) 2005-2017 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2020 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Major portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2008 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -853,9 +853,12 @@ static void bcemit_comp(FuncState *fs, BinOpr opr, ExpDesc *e1, ExpDesc *e2)
       e1 = e2; e2 = eret;  /* Swap operands. */
       op = ((op-BC_ISLT)^3)+BC_ISLT;
       expr_toval(fs, e1);
+      ra = expr_toanyreg(fs, e1);
+      rd = expr_toanyreg(fs, e2);
+    } else {
+      rd = expr_toanyreg(fs, e2);
+      ra = expr_toanyreg(fs, e1);
     }
-    rd = expr_toanyreg(fs, e2);
-    ra = expr_toanyreg(fs, e1);
     ins = BCINS_AD(op, ra, rd);
   }
   /* Using expr_free might cause asserts if the order is wrong. */
@@ -1282,12 +1285,14 @@ static void fscope_end(FuncState *fs)
       MSize idx = gola_new(ls, NAME_BREAK, VSTACK_LABEL, fs->pc);
       ls->vtop = idx;  /* Drop break label immediately. */
       gola_resolve(ls, bl, idx);
+    } else {  /* Need the fixup step to propagate the breaks. */
+      gola_fixup(ls, bl);
       return;
-    }  /* else: need the fixup step to propagate the breaks. */
-  } else if (!(bl->flags & FSCOPE_GOLA)) {
-    return;
+    }
   }
-  gola_fixup(ls, bl);
+  if ((bl->flags & FSCOPE_GOLA)) {
+    gola_fixup(ls, bl);
+  }
 }
 
 /* Mark scope as having an upvalue. */
@@ -2665,7 +2670,8 @@ static int parse_stmt(LexState *ls)
       lj_lex_next(ls);
       parse_goto(ls);
       break;
-    }  /* else: fallthrough */
+    }
+    /* fallthrough */
   default:
     parse_call_assign(ls);
     break;

@@ -8,6 +8,7 @@ OLTP usage information test
   oltp_read_write.lua options:
     --auto_inc[=on|off]           Use AUTO_INCREMENT column as Primary Key (for MySQL), or its alternatives in other DBMS. When disabled, use client-generated IDs [on]
     --create_secondary[=on|off]   Create a secondary index in addition to the PRIMARY KEY [on]
+    --create_table_options=STRING Extra CREATE TABLE options []
     --delete_inserts=N            Number of DELETE/INSERT combinations per transaction [1]
     --distinct_ranges=N           Number of SELECT DISTINCT queries per transaction [1]
     --index_updates=N             Number of UPDATE index queries per transaction [1]
@@ -18,6 +19,7 @@ OLTP usage information test
     --point_selects=N             Number of point SELECT queries per transaction [10]
     --range_selects[=on|off]      Enable/disable all range SELECT queries [on]
     --range_size=N                Range size for range SELECT queries [100]
+    --reconnect=N                 Reconnect after every N events. The default (0) is to not reconnect [0]
     --secondary[=on|off]          Use a secondary index in place of the PRIMARY KEY [off]
     --simple_ranges=N             Number of simple range SELECT queries per transaction [1]
     --skip_trx[=on|off]           Don't start explicit transactions and execute all queries in the AUTOCOMMIT mode [off]

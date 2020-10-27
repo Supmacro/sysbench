@@ -1,6 +1,6 @@
 /*
 ** Definitions for ARM64 CPUs.
-** Copyright (C) 2005-2017 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2020 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #ifndef _LJ_TARGET_ARM64_H
@@ -107,7 +107,7 @@ typedef struct {
 /* Return the address of a per-trace exit stub. */
 static LJ_AINLINE uint32_t *exitstub_trace_addr_(uint32_t *p, uint32_t exitno)
 {
-  while (*p == 0xd503201f) p++;  /* Skip A64I_NOP. */
+  while (*p == (LJ_LE ? 0xd503201f : 0x1f2003d5)) p++;  /* Skip A64I_NOP. */
   return p + 3 + exitno;
 }
 /* Avoid dependence on lj_jit.h if only including lj_target.h. */
@@ -115,6 +115,13 @@ static LJ_AINLINE uint32_t *exitstub_trace_addr_(uint32_t *p, uint32_t exitno)
   exitstub_trace_addr_((MCode *)((char *)(T)->mcode + (T)->szmcode), (exitno))
 
 /* -- Instructions -------------------------------------------------------- */
+
+/* ARM64 instructions are always little-endian. Swap for ARM64BE. */
+#if LJ_BE
+#define A64I_LE(x)	(lj_bswap(x))
+#else
+#define A64I_LE(x)	(x)
+#endif
 
 /* Instruction fields. */
 #define A64F_D(r)	(r)
@@ -125,9 +132,9 @@ static LJ_AINLINE uint32_t *exitstub_trace_addr_(uint32_t *p, uint32_t exitno)
 #define A64F_IMMR(x)	((x) << 16)
 #define A64F_U16(x)	((x) << 5)
 #define A64F_U12(x)	((x) << 10)
-#define A64F_S26(x)	(x)
+#define A64F_S26(x)	(((uint32_t)(x) & 0x03ffffffu))
 #define A64F_S19(x)	(((uint32_t)(x) & 0x7ffffu) << 5)
-#define A64F_S14(x)	((x) << 5)
+#define A64F_S14(x)	(((uint32_t)(x) & 0x3fffu) << 5)
 #define A64F_S9(x)	((x) << 12)
 #define A64F_BIT(x)	((x) << 19)
 #define A64F_SH(sh, x)	(((sh) << 22) | ((x) << 10))
@@ -137,6 +144,9 @@ static LJ_AINLINE uint32_t *exitstub_trace_addr_(uint32_t *p, uint32_t exitno)
 #define A64F_CC(cc)	((cc) << 12)
 #define A64F_LSL16(x)	(((x) / 16) << 21)
 #define A64F_BSH(sh)	((sh) << 10)
+
+/* Check for valid field range. */
+#define A64F_S_OK(x, b)	((((x) + (1 << (b-1))) >> (b)) == 0)
 
 typedef enum A64Ins {
   A64I_S = 0x20000000,

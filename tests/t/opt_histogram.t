@@ -33,8 +33,9 @@
      * |\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* 1 (glob)
    
   
-  General statistics:
-      total time:                      *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:                     *s (glob)
       total number of events:              2
   
   Latency (ms):

@@ -1,6 +1,6 @@
 /*
 ** IR assembler (SSA IR -> machine code).
-** Copyright (C) 2005-2017 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2020 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_asm_c
@@ -22,7 +22,6 @@
 #include "lj_ircall.h"
 #include "lj_iropt.h"
 #include "lj_mcode.h"
-#include "lj_iropt.h"
 #include "lj_trace.h"
 #include "lj_snap.h"
 #include "lj_asm.h"
@@ -338,7 +337,7 @@ static Reg ra_rematk(ASMState *as, IRRef ref)
   ra_modified(as, r);
   ir->r = RID_INIT;  /* Do not keep any hint. */
   RA_DBGX((as, "remat     $i $r", ir, r));
-#if !LJ_SOFTFP
+#if !LJ_SOFTFP32
   if (ir->o == IR_KNUM) {
     emit_loadk64(as, r, ir);
   } else
@@ -1017,7 +1016,11 @@ static uint32_t ir_khash(IRIns *ir)
   } else {
     lua_assert(irt_isgcv(ir->t));
     lo = u32ptr(ir_kgc(ir));
+#if LJ_GC64
+    hi = (uint32_t)(u64ptr(ir_kgc(ir)) >> 32) | (irt_toitype(ir->t) << 15);
+#else
     hi = lo + HASH_BIAS;
+#endif
   }
   return hashrot(lo, hi);
 }
@@ -1115,7 +1118,7 @@ static void asm_bufput(ASMState *as, IRIns *ir)
   const CCallInfo *ci = &lj_ir_callinfo[IRCALL_lj_buf_putstr];
   IRRef args[3];
   IRIns *irs;
-  int kchar = -1;
+  int kchar = -129;
   args[0] = ir->op1;  /* SBuf * */
   args[1] = ir->op2;  /* GCstr * */
   irs = IR(ir->op2);
@@ -1123,7 +1126,7 @@ static void asm_bufput(ASMState *as, IRIns *ir)
   if (irs->o == IR_KGC) {
     GCstr *s = ir_kstr(irs);
     if (s->len == 1) {  /* Optimize put of single-char string constant. */
-      kchar = strdata(s)[0];
+      kchar = (int8_t)strdata(s)[0];  /* Signed! */
       args[1] = ASMREF_TMP1;  /* int, truncated to char */
       ci = &lj_ir_callinfo[IRCALL_lj_buf_putchar];
     }
@@ -1150,7 +1153,7 @@ static void asm_bufput(ASMState *as, IRIns *ir)
   asm_gencall(as, ci, args);
   if (args[1] == ASMREF_TMP1) {
     Reg tmp = ra_releasetmp(as, ASMREF_TMP1);
-    if (kchar == -1)
+    if (kchar == -129)
       asm_tvptr(as, tmp, irs->op1);
     else
       ra_allockreg(as, kchar, tmp);
@@ -1304,32 +1307,6 @@ static void asm_call(ASMState *as, IRIns *ir)
   asm_setupresult(as, ir, ci);
   asm_gencall(as, ci, args);
 }
-
-#if !LJ_SOFTFP
-static void asm_fppow(ASMState *as, IRIns *ir, IRRef lref, IRRef rref)
-{
-  const CCallInfo *ci = &lj_ir_callinfo[IRCALL_pow];
-  IRRef args[2];
-  args[0] = lref;
-  args[1] = rref;
-  asm_setupresult(as, ir, ci);
-  asm_gencall(as, ci, args);
-}
-
-static int asm_fpjoin_pow(ASMState *as, IRIns *ir)
-{
-  IRIns *irp = IR(ir->op1);
-  if (irp == ir-1 && irp->o == IR_MUL && !ra_used(irp)) {
-    IRIns *irpp = IR(irp->op1);
-    if (irpp == ir-2 && irpp->o == IR_FPMATH &&
-	irpp->op2 == IRFPM_LOG2 && !ra_used(irpp)) {
-      asm_fppow(as, ir, irpp->op1, irp->op2);
-      return 1;
-    }
-  }
-  return 0;
-}
-#endif
 
 /* -- PHI and loop handling ----------------------------------------------- */
 
@@ -1601,6 +1578,68 @@ static void asm_loop(ASMState *as)
 #error "Missing assembler for target CPU"
 #endif
 
+/* -- Common instruction helpers ------------------------------------------ */
+
+#if !LJ_SOFTFP32
+#if !LJ_TARGET_X86ORX64
+#define asm_ldexp(as, ir)	asm_callid(as, ir, IRCALL_ldexp)
+#define asm_fppowi(as, ir)	asm_callid(as, ir, IRCALL_lj_vm_powi)
+#endif
+
+static void asm_pow(ASMState *as, IRIns *ir)
+{
+#if LJ_64 && LJ_HASFFI
+  if (!irt_isnum(ir->t))
+    asm_callid(as, ir, irt_isi64(ir->t) ? IRCALL_lj_carith_powi64 :
+					  IRCALL_lj_carith_powu64);
+  else
+#endif
+  if (irt_isnum(IR(ir->op2)->t))
+    asm_callid(as, ir, IRCALL_pow);
+  else
+    asm_fppowi(as, ir);
+}
+
+static void asm_div(ASMState *as, IRIns *ir)
+{
+#if LJ_64 && LJ_HASFFI
+  if (!irt_isnum(ir->t))
+    asm_callid(as, ir, irt_isi64(ir->t) ? IRCALL_lj_carith_divi64 :
+					  IRCALL_lj_carith_divu64);
+  else
+#endif
+    asm_fpdiv(as, ir);
+}
+#endif
+
+static void asm_mod(ASMState *as, IRIns *ir)
+{
+#if LJ_64 && LJ_HASFFI
+  if (!irt_isint(ir->t))
+    asm_callid(as, ir, irt_isi64(ir->t) ? IRCALL_lj_carith_modi64 :
+					  IRCALL_lj_carith_modu64);
+  else
+#endif
+    asm_callid(as, ir, IRCALL_lj_vm_modi);
+}
+
+static void asm_fuseequal(ASMState *as, IRIns *ir)
+{
+  /* Fuse HREF + EQ/NE. */
+  if ((ir-1)->o == IR_HREF && ir->op1 == as->curins-1) {
+    as->curins--;
+    asm_href(as, ir-1, (IROp)ir->o);
+  } else {
+    asm_equal(as, ir);
+  }
+}
+
+static void asm_alen(ASMState *as, IRIns *ir)
+{
+  asm_callid(as, ir, ir->op2 == REF_NIL ? IRCALL_lj_tab_len :
+					  IRCALL_lj_tab_len_hint);
+}
+
 /* -- Instruction dispatch ------------------------------------------------ */
 
 /* Assemble a single instruction. */
@@ -1623,14 +1662,7 @@ static void asm_ir(ASMState *as, IRIns *ir)
   case IR_ABC:
     asm_comp(as, ir);
     break;
-  case IR_EQ: case IR_NE:
-    if ((ir-1)->o == IR_HREF && ir->op1 == as->curins-1) {
-      as->curins--;
-      asm_href(as, ir-1, (IROp)ir->o);
-    } else {
-      asm_equal(as, ir);
-    }
-    break;
+  case IR_EQ: case IR_NE: asm_fuseequal(as, ir); break;
 
   case IR_RETF: asm_retf(as, ir); break;
 
@@ -1652,16 +1684,15 @@ static void asm_ir(ASMState *as, IRIns *ir)
   case IR_MUL: asm_mul(as, ir); break;
   case IR_MOD: asm_mod(as, ir); break;
   case IR_NEG: asm_neg(as, ir); break;
-#if LJ_SOFTFP
+#if LJ_SOFTFP32
   case IR_DIV: case IR_POW: case IR_ABS:
-  case IR_ATAN2: case IR_LDEXP: case IR_FPMATH: case IR_TOBIT:
-    lua_assert(0);  /* Unused for LJ_SOFTFP. */
+  case IR_LDEXP: case IR_FPMATH: case IR_TOBIT:
+    lua_assert(0);  /* Unused for LJ_SOFTFP32. */
     break;
 #else
   case IR_DIV: asm_div(as, ir); break;
   case IR_POW: asm_pow(as, ir); break;
   case IR_ABS: asm_abs(as, ir); break;
-  case IR_ATAN2: asm_atan2(as, ir); break;
   case IR_LDEXP: asm_ldexp(as, ir); break;
   case IR_FPMATH: asm_fpmath(as, ir); break;
   case IR_TOBIT: asm_tobit(as, ir); break;
@@ -1691,6 +1722,7 @@ static void asm_ir(ASMState *as, IRIns *ir)
   case IR_FLOAD: asm_fload(as, ir); break;
   case IR_XLOAD: asm_xload(as, ir); break;
   case IR_SLOAD: asm_sload(as, ir); break;
+  case IR_ALEN: asm_alen(as, ir); break;
 
   case IR_ASTORE: case IR_HSTORE: case IR_USTORE: asm_ahustore(as, ir); break;
   case IR_FSTORE: asm_fstore(as, ir); break;
@@ -1700,7 +1732,13 @@ static void asm_ir(ASMState *as, IRIns *ir)
   case IR_SNEW: case IR_XSNEW: asm_snew(as, ir); break;
   case IR_TNEW: asm_tnew(as, ir); break;
   case IR_TDUP: asm_tdup(as, ir); break;
-  case IR_CNEW: case IR_CNEWI: asm_cnew(as, ir); break;
+  case IR_CNEW: case IR_CNEWI:
+#if LJ_HASFFI
+    asm_cnew(as, ir);
+#else
+    lua_assert(0);
+#endif
+    break;
 
   /* Buffer operations. */
   case IR_BUFHDR: asm_bufhdr(as, ir); break;
@@ -2011,6 +2049,7 @@ static void asm_setup_regsp(ASMState *as)
     ir->prev = REGSP_INIT;
     if (irt_is64(ir->t) && ir->o != IR_KNULL) {
 #if LJ_GC64
+      /* The false-positive of irt_is64() for ASMREF_L (REF_NIL) is OK here. */
       ir->i = 0;  /* Will become non-zero only for RIP-relative addresses. */
 #else
       /* Make life easier for backends by putting address of constant in i. */
@@ -2108,8 +2147,8 @@ static void asm_setup_regsp(ASMState *as)
 	  ir->prev = REGSP_HINT(RID_FPRET);
 	  continue;
 	}
-	/* fallthrough */
 #endif
+      /* fallthrough */
       case IR_CALLN: case IR_CALLXS:
 #if LJ_SOFTFP
       case IR_MIN: case IR_MAX:
@@ -2125,8 +2164,8 @@ static void asm_setup_regsp(ASMState *as)
 #if LJ_SOFTFP
     case IR_MIN: case IR_MAX:
       if ((ir+1)->o != IR_HIOP) break;
-      /* fallthrough */
 #endif
+    /* fallthrough */
     /* C calls evict all scratch regs and return results in RID_RET. */
     case IR_SNEW: case IR_XSNEW: case IR_NEWREF: case IR_BUFPUT:
       if (REGARG_NUMGPR < 3 && as->evenspill < 3)
@@ -2137,9 +2176,12 @@ static void asm_setup_regsp(ASMState *as)
 	if (ir->op2 != REF_NIL && as->evenspill < 4)
 	  as->evenspill = 4;  /* lj_cdata_newv needs 4 args. */
       }
+      /* fallthrough */
 #else
+      /* fallthrough */
     case IR_CNEW:
 #endif
+      /* fallthrough */
     case IR_TNEW: case IR_TDUP: case IR_CNEWI: case IR_TOSTR:
     case IR_BUFSTR:
       ir->prev = REGSP_HINT(RID_RET);
@@ -2151,27 +2193,27 @@ static void asm_setup_regsp(ASMState *as)
 	as->modset = RSET_SCRATCH;
       break;
 #if !LJ_SOFTFP
-    case IR_ATAN2:
-#if LJ_TARGET_X86
-      if (as->evenspill < 4)  /* Leave room to call atan2(). */
-	as->evenspill = 4;
-#endif
 #if !LJ_TARGET_X86ORX64
     case IR_LDEXP:
 #endif
 #endif
+      /* fallthrough */
     case IR_POW:
       if (!LJ_SOFTFP && irt_isnum(ir->t)) {
 	if (inloop)
 	  as->modset |= RSET_SCRATCH;
 #if LJ_TARGET_X86
+	if (irt_isnum(IR(ir->op2)->t)) {
+	  if (as->evenspill < 4)  /* Leave room to call pow(). */
+	    as->evenspill = 4;
+	}
 	break;
 #else
 	ir->prev = REGSP_HINT(RID_FPRET);
 	continue;
 #endif
       }
-      /* fallthrough for integer POW */
+      /* fallthrough */ /* for integer POW */
     case IR_DIV: case IR_MOD:
       if (!irt_isnum(ir->t)) {
 	ir->prev = REGSP_HINT(RID_RET);
@@ -2190,9 +2232,6 @@ static void asm_setup_regsp(ASMState *as)
 	  continue;
 	}
 	break;
-      } else if (ir->op2 == IRFPM_EXP2 && !LJ_64) {
-	if (as->evenspill < 4)  /* Leave room to call pow(). */
-	  as->evenspill = 4;
       }
 #endif
       if (inloop)
@@ -2208,6 +2247,7 @@ static void asm_setup_regsp(ASMState *as)
     case IR_BSHL: case IR_BSHR: case IR_BSAR:
       if ((as->flags & JIT_F_BMI2))  /* Except if BMI2 is available. */
 	break;
+      /* fallthrough */
     case IR_BROL: case IR_BROR:
       if (!irref_isk(ir->op2) && !ra_hashint(IR(ir->op2)->r)) {
 	IR(ir->op2)->r = REGSP_HINT(RID_ECX);
@@ -2393,6 +2433,9 @@ void lj_asm_trace(jit_State *J, GCtrace *T)
   if (!as->loopref)
     asm_tail_fixup(as, T->link);  /* Note: this may change as->mctop! */
   T->szmcode = (MSize)((char *)as->mctop - (char *)as->mcp);
+#if LJ_TARGET_MCODE_FIXUP
+  asm_mcode_fixup(T->mcode, T->szmcode);
+#endif
   lj_mcode_sync(T->mcode, origtop);
 }
 

@@ -130,7 +130,7 @@ oltp_insert.lua + PostgreSQL tests
   Did not find any relation named "sbtest9".
   sysbench *.* * (glob)
   
-  FATAL: *: prewarm is currently MySQL only (glob)
+  FATAL: *: warmup is currently MySQL only (glob)
   sysbench *.* * (glob)
   
   Dropping table 'sbtest1'...
@@ -260,8 +260,9 @@ oltp_insert.lua + PostgreSQL tests
       ignored errors:                      0      (* per sec.) (glob)
       reconnects:                          0      (* per sec.) (glob)
   
-  General statistics:
-      total time:                          *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:                        *s (glob)
       total number of events:              100
   
   Latency (ms):
@@ -306,3 +307,5 @@ oltp_insert.lua + PostgreSQL tests
   Creating table 'sbtest1'...
   Creating a secondary index on 'sbtest1'...
   Dropping table 'sbtest1'...
+  # Test --reconnect
+      reconnects:                          20     (* per sec.) (glob)

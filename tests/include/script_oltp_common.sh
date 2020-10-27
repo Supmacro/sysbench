@@ -33,7 +33,7 @@ db_show_table sbtest7
 db_show_table sbtest8
 db_show_table sbtest9 || true # Error on non-existing table
 
-sysbench $ARGS prewarm || true # MySQL-only
+sysbench $ARGS warmup || true # MySQL only
 sysbench $ARGS cleanup
 
 # Test parallel prepare/prewarm/cleanup. Parallelism may result in
@@ -84,3 +84,12 @@ ARGS="$ARGS --auto-inc=off --verbosity=1"
 sysbench $ARGS prepare
 sysbench $ARGS run
 sysbench $ARGS cleanup
+
+echo "# Test --reconnect"
+
+ARGS="${OLTP_SCRIPT_PATH} ${DB_DRIVER_ARGS} ${SB_EXTRA_ARGS} --events=100 \
+--reconnect=5"
+
+sysbench $ARGS prepare >/dev/null || true
+sysbench $ARGS run | grep reconnects:
+sysbench $ARGS cleanup >/dev/null || true

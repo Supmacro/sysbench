@@ -21,23 +21,9 @@ AM_CPPFLAGS += -DDATADIR=\"$(pkgdatadir)\" -DLIBDIR=\"$(pkglibdir)\"
 
 bin_PROGRAMS = sysbench
 
-EXTRA_LDFLAGS = @EXTRA_LDFLAGS@
-
 # The following check will be extended as new database drivers will be added
 if USE_MYSQL
 mysql_ldadd = drivers/mysql/libsbmysql.a $(MYSQL_LIBS)
-endif
-
-if USE_DRIZZLE
-drizzle_ldadd = drivers/drizzle/libsbdrizzle.a $(LIBDRIZZLE)
-endif
-
-if USE_ATTACHSQL
-attachsql_ldadd = drivers/attachsql/libsbattachsql.a $(LIBATTACHSQL)
-endif
-
-if USE_ORACLE
-ora_ldadd = drivers/oracle/libsboracle.a $(ORA_LIBS)
 endif
 
 if USE_PGSQL
@@ -56,14 +42,14 @@ sb_ck_pr.h \
 sb_lua.h sb_util.h sb_util.c sb_counter.h sb_counter.c \
 lua/internal/sysbench.lua.h lua/internal/sysbench.sql.lua.h \
 lua/internal/sysbench.rand.lua.h lua/internal/sysbench.cmdline.lua.h  \
-lua/internal/sysbench.compat.lua.h lua/internal/sysbench.histogram.lua.h \
+lua/internal/sysbench.histogram.lua.h \
 xoroshiro128plus.h
 
 sysbench_LDADD = tests/fileio/libsbfileio.a tests/threads/libsbthreads.a \
     tests/memory/libsbmemory.a tests/cpu/libsbcpu.a \
     tests/mutex/libsbmutex.a \
-    $(mysql_ldadd) $(drizzle_ldadd) $(attachsql_ldadd) $(pgsql_ldadd) $(xugusql_ldadd) \
-    $(ora_ldadd) $(LUAJIT_LIBS) $(CK_LIBS)
+    $(mysql_ldadd) $(pgsql_ldadd) $(xugusql_ldadd) \
+    $(LUAJIT_LIBS) $(CK_LIBS)
 
-sysbench_LDFLAGS = $(EXTRA_LDFLAGS) $(mysql_ldflags) $(attachsql_ldflags) \
-    $(pgsql_ldflags) $(xugusql_ldflags) $(ora_ldflags) $(LUAJIT_LDFLAGS)
+sysbench_LDFLAGS = $(mysql_ldflags) \
+    $(pgsql_ldflags) $(xugusql_ldflags) $(LUAJIT_LDFLAGS)

@@ -1,6 +1,6 @@
 /*
 ** ARM64 IR assembler (SSA IR -> machine code).
-** Copyright (C) 2005-2017 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2020 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Contributed by Djordje Kovacevic and Stefan Pejic from RT-RK.com.
 ** Sponsored by Cisco Systems, Inc.
@@ -56,11 +56,11 @@ static void asm_exitstub_setup(ASMState *as, ExitNo nexits)
     asm_mclimit(as);
   /* 1: str lr,[sp]; bl ->vm_exit_handler; movz w0,traceno; bl <1; bl <1; ... */
   for (i = nexits-1; (int32_t)i >= 0; i--)
-    *--mxp = A64I_BL|((-3-i)&0x03ffffffu);
-  *--mxp = A64I_MOVZw|A64F_U16(as->T->traceno);
+    *--mxp = A64I_LE(A64I_BL | A64F_S26(-3-i));
+  *--mxp = A64I_LE(A64I_MOVZw | A64F_U16(as->T->traceno));
   mxp--;
-  *mxp = A64I_BL|(((MCode *)(void *)lj_vm_exit_handler-mxp)&0x03ffffffu);
-  *--mxp = A64I_STRx|A64F_D(RID_LR)|A64F_N(RID_SP);
+  *mxp = A64I_LE(A64I_BL | A64F_S26(((MCode *)(void *)lj_vm_exit_handler-mxp)));
+  *--mxp = A64I_LE(A64I_STRx | A64F_D(RID_LR) | A64F_N(RID_SP));
   as->mctop = mxp;
 }
 
@@ -77,7 +77,7 @@ static void asm_guardcc(ASMState *as, A64CC cc)
   MCode *p = as->mcp;
   if (LJ_UNLIKELY(p == as->invmcp)) {
     as->loopinv = 1;
-    *p = A64I_B | ((target-p) & 0x03ffffffu);
+    *p = A64I_B | A64F_S26(target-p);
     emit_cond_branch(as, cc^1, p-1);
     return;
   }
@@ -91,7 +91,7 @@ static void asm_guardtnb(ASMState *as, A64Ins ai, Reg r, uint32_t bit)
   MCode *p = as->mcp;
   if (LJ_UNLIKELY(p == as->invmcp)) {
     as->loopinv = 1;
-    *p = A64I_B | ((target-p) & 0x03ffffffu);
+    *p = A64I_B | A64F_S26(target-p);
     emit_tnb(as, ai^0x01000000u, r, bit, p-1);
     return;
   }
@@ -105,7 +105,7 @@ static void asm_guardcnb(ASMState *as, A64Ins ai, Reg r)
   MCode *p = as->mcp;
   if (LJ_UNLIKELY(p == as->invmcp)) {
     as->loopinv = 1;
-    *p = A64I_B | ((target-p) & 0x03ffffffu);
+    *p = A64I_B | A64F_S26(target-p);
     emit_cnb(as, ai^0x01000000u, r, p-1);
     return;
   }
@@ -286,7 +286,7 @@ static void asm_fusexref(ASMState *as, A64Ins ai, Reg rd, IRRef ref,
 	}
 	rm = ra_alloc1(as, lref, allow);
 	rn = ra_alloc1(as, rref, rset_exclude(allow, rm));
-	emit_dnm(as, (ai^A64I_LS_R), rd, rn, rm);
+	emit_dnm(as, (ai^A64I_LS_R), (rd & 31), rn, rm);
 	return;
       }
     } else if (ir->o == IR_STRREF) {
@@ -295,8 +295,10 @@ static void asm_fusexref(ASMState *as, A64Ins ai, Reg rd, IRRef ref,
       } else if (asm_isk32(as, ir->op1, &ofs)) {
 	ref = ir->op2;
       } else {
-	Reg rn = ra_alloc1(as, ir->op1, allow);
-	IRIns *irr = IR(ir->op2);
+	Reg refk = irref_isk(ir->op1) ? ir->op1 : ir->op2;
+	Reg refv = irref_isk(ir->op1) ? ir->op2 : ir->op1;
+	Reg rn = ra_alloc1(as, refv, allow);
+	IRIns *irr = IR(refk);
 	uint32_t m;
 	if (irr+1 == ir && !ra_used(irr) &&
 	    irr->o == IR_ADD && irref_isk(irr->op2)) {
@@ -307,7 +309,7 @@ static void asm_fusexref(ASMState *as, A64Ins ai, Reg rd, IRRef ref,
 	    goto skipopm;
 	  }
 	}
-	m = asm_fuseopm(as, 0, ir->op2, rset_exclude(allow, rn));
+	m = asm_fuseopm(as, 0, refk, rset_exclude(allow, rn));
 	ofs = sizeof(GCstr);
       skipopm:
 	emit_lso(as, ai, rd, rd, ofs);
@@ -431,7 +433,7 @@ static void asm_gencall(ASMState *as, const CCallInfo *ci, IRRef *args)
 	  fpr++;
 	} else {
 	  Reg r = ra_alloc1(as, ref, RSET_FPR);
-	  emit_spstore(as, ir, r, ofs);
+	  emit_spstore(as, ir, r, ofs + ((LJ_BE && !irt_isnum(ir->t)) ? 4 : 0));
 	  ofs += 8;
 	}
       } else {
@@ -441,7 +443,7 @@ static void asm_gencall(ASMState *as, const CCallInfo *ci, IRRef *args)
 	  gpr++;
 	} else {
 	  Reg r = ra_alloc1(as, ref, RSET_GPR);
-	  emit_spstore(as, ir, r, ofs);
+	  emit_spstore(as, ir, r, ofs + ((LJ_BE && !irt_is64(ir->t)) ? 4 : 0));
 	  ofs += 8;
 	}
       }
@@ -722,6 +724,7 @@ static void asm_href(ASMState *as, IRIns *ir, IROp merge)
   Reg dest = ra_dest(as, ir, allow);
   Reg tab = ra_alloc1(as, ir->op1, rset_clear(allow, dest));
   Reg key = 0, tmp = RID_TMP;
+  Reg ftmp = RID_NONE, type = RID_NONE, scr = RID_NONE, tisnum = RID_NONE;
   IRRef refkey = ir->op2;
   IRIns *irkey = IR(refkey);
   int isk = irref_isk(ir->op2);
@@ -749,6 +752,28 @@ static void asm_href(ASMState *as, IRIns *ir, IROp merge)
       key = ra_alloc1(as, refkey, allow);
       rset_clear(allow, key);
     }
+  }
+
+  /* Allocate constants early. */
+  if (irt_isnum(kt)) {
+    if (!isk) {
+      tisnum = ra_allock(as, LJ_TISNUM << 15, allow);
+      ftmp = ra_scratch(as, rset_exclude(RSET_FPR, key));
+      rset_clear(allow, tisnum);
+    }
+  } else if (irt_isaddr(kt)) {
+    if (isk) {
+      int64_t kk = ((int64_t)irt_toitype(irkey->t) << 47) | irkey[1].tv.u64;
+      scr = ra_allock(as, kk, allow);
+    } else {
+      scr = ra_scratch(as, allow);
+    }
+    rset_clear(allow, scr);
+  } else {
+    lua_assert(irt_ispri(kt) && !irt_isnil(kt));
+    type = ra_allock(as, ~((int64_t)~irt_toitype(ir->t) << 47), allow);
+    scr = ra_scratch(as, rset_clear(allow, type));
+    rset_clear(allow, scr);
   }
 
   /* Key not found in chain: jump to exit (if merged) or load niltv. */
@@ -780,9 +805,6 @@ static void asm_href(ASMState *as, IRIns *ir, IROp merge)
 	emit_nm(as, A64I_CMPx, key, tmp);
       emit_lso(as, A64I_LDRx, tmp, dest, offsetof(Node, key.u64));
     } else {
-      Reg tisnum = ra_allock(as, LJ_TISNUM << 15, allow);
-      Reg ftmp = ra_scratch(as, rset_exclude(RSET_FPR, key));
-      rset_clear(allow, tisnum);
       emit_nm(as, A64I_FCMPd, key, ftmp);
       emit_dn(as, A64I_FMOV_D_R, (ftmp & 31), (tmp & 31));
       emit_cond_branch(as, CC_LO, l_next);
@@ -790,31 +812,21 @@ static void asm_href(ASMState *as, IRIns *ir, IROp merge)
       emit_lso(as, A64I_LDRx, tmp, dest, offsetof(Node, key.n));
     }
   } else if (irt_isaddr(kt)) {
-    Reg scr;
     if (isk) {
-      int64_t kk = ((int64_t)irt_toitype(irkey->t) << 47) | irkey[1].tv.u64;
-      scr = ra_allock(as, kk, allow);
       emit_nm(as, A64I_CMPx, scr, tmp);
       emit_lso(as, A64I_LDRx, tmp, dest, offsetof(Node, key.u64));
     } else {
-      scr = ra_scratch(as, allow);
       emit_nm(as, A64I_CMPx, tmp, scr);
       emit_lso(as, A64I_LDRx, scr, dest, offsetof(Node, key.u64));
     }
-    rset_clear(allow, scr);
   } else {
-    Reg type, scr;
-    lua_assert(irt_ispri(kt) && !irt_isnil(kt));
-    type = ra_allock(as, ~((int64_t)~irt_toitype(ir->t) << 47), allow);
-    scr = ra_scratch(as, rset_clear(allow, type));
-    rset_clear(allow, scr);
     emit_nm(as, A64I_CMPw, scr, type);
     emit_lso(as, A64I_LDRx, scr, dest, offsetof(Node, key));
   }
 
   *l_loop = A64I_BCC | A64F_S19(as->mcp - l_loop) | CC_NE;
   if (!isk && irt_isaddr(kt)) {
-    Reg type = ra_allock(as, (int32_t)irt_toitype(kt), allow);
+    type = ra_allock(as, (int32_t)irt_toitype(kt), allow);
     emit_dnm(as, A64I_ADDx | A64F_SH(A64SH_LSL, 47), tmp, key, type);
     rset_clear(allow, type);
   }
@@ -869,14 +881,12 @@ static void asm_hrefk(ASMState *as, IRIns *ir)
   int32_t ofs = (int32_t)(kslot->op2 * sizeof(Node));
   int32_t kofs = ofs + (int32_t)offsetof(Node, key);
   int bigofs = !emit_checkofs(A64I_LDRx, ofs);
-  RegSet allow = RSET_GPR;
   Reg dest = (ra_used(ir) || bigofs) ? ra_dest(as, ir, RSET_GPR) : RID_NONE;
-  Reg node = ra_alloc1(as, ir->op1, allow);
-  Reg key = ra_scratch(as, rset_clear(allow, node));
-  Reg idx = node;
+  Reg node = ra_alloc1(as, ir->op1, RSET_GPR);
+  Reg key, idx = node;
+  RegSet allow = rset_exclude(RSET_GPR, node);
   uint64_t k;
   lua_assert(ofs % sizeof(Node) == 0);
-  rset_clear(allow, key);
   if (bigofs) {
     idx = dest;
     rset_clear(allow, dest);
@@ -892,7 +902,8 @@ static void asm_hrefk(ASMState *as, IRIns *ir)
   } else {
     k = ((uint64_t)irt_toitype(irkey->t) << 47) | (uint64_t)ir_kgc(irkey);
   }
-  emit_nm(as, A64I_CMPx, key, ra_allock(as, k, allow));
+  key = ra_scratch(as, allow);
+  emit_nm(as, A64I_CMPx, key, ra_allock(as, k, rset_exclude(allow, key)));
   emit_lso(as, A64I_LDRx, key, idx, kofs);
   if (bigofs)
     emit_opk(as, A64I_ADDx, dest, node, ofs, RSET_GPR);
@@ -1056,7 +1067,7 @@ static void asm_ahuvload(ASMState *as, IRIns *ir)
     emit_n(as, (A64I_CMNx^A64I_K12) | A64F_U12(1), tmp);
   } else {
     emit_nm(as, A64I_CMPx | A64F_SH(A64SH_LSR, 32),
-	    ra_allock(as, (irt_toitype(ir->t) << 15) | 0x7fff, allow), tmp);
+	    ra_allock(as, (irt_toitype(ir->t) << 15) | 0x7fff, gpr), tmp);
   }
   if (ofs & FUSE_REG)
     emit_dnm(as, (A64I_LDRx^A64I_LS_R)|A64I_LS_UXTWx|A64I_LS_SH, tmp, idx, (ofs & 31));
@@ -1082,7 +1093,7 @@ static void asm_ahustore(ASMState *as, IRIns *ir)
 	src = ra_alloc1(as, ir->op2, allow);
 	rset_clear(allow, src);
 	if (irt_isinteger(ir->t))
-          type = ra_allock(as, (uint64_t)(int32_t)LJ_TISNUM << 47, allow);
+	  type = ra_allock(as, (uint64_t)(int32_t)LJ_TISNUM << 47, allow);
 	else
 	  type = ra_allock(as, irt_toitype(ir->t), allow);
       } else {
@@ -1179,7 +1190,8 @@ dotypecheck:
   }
   if (ra_hasreg(dest)) {
     emit_lso(as, irt_isnum(t) ? A64I_LDRd :
-	     (irt_isint(t) ? A64I_LDRw : A64I_LDRx), (dest & 31), base, ofs);
+	     (irt_isint(t) ? A64I_LDRw : A64I_LDRx), (dest & 31), base,
+	     ofs ^ ((LJ_BE && irt_isint(t) ? 4 : 0)));
   }
 }
 
@@ -1230,8 +1242,6 @@ static void asm_cnew(ASMState *as, IRIns *ir)
   ra_allockreg(as, (int32_t)(sz+sizeof(GCcdata)),
 	       ra_releasetmp(as, ASMREF_TMP1));
 }
-#else
-#define asm_cnew(as, ir)	((void)0)
 #endif
 
 /* -- Write barriers ------------------------------------------------------ */
@@ -1308,8 +1318,6 @@ static void asm_fpmath(ASMState *as, IRIns *ir)
   } else if (fpm <= IRFPM_TRUNC) {
     asm_fpunary(as, ir, fpm == IRFPM_FLOOR ? A64I_FRINTMd :
 			fpm == IRFPM_CEIL ? A64I_FRINTPd : A64I_FRINTZd);
-  } else if (fpm == IRFPM_EXP2 && asm_fpjoin_pow(as, ir)) {
-    return;
   } else {
     asm_callid(as, ir, IRCALL_lj_vm_floor + fpm);
   }
@@ -1416,46 +1424,12 @@ static void asm_mul(ASMState *as, IRIns *ir)
   asm_intmul(as, ir);
 }
 
-static void asm_div(ASMState *as, IRIns *ir)
-{
-#if LJ_HASFFI
-  if (!irt_isnum(ir->t))
-    asm_callid(as, ir, irt_isi64(ir->t) ? IRCALL_lj_carith_divi64 :
-					  IRCALL_lj_carith_divu64);
-  else
-#endif
-    asm_fparith(as, ir, A64I_FDIVd);
-}
-
-static void asm_pow(ASMState *as, IRIns *ir)
-{
-#if LJ_HASFFI
-  if (!irt_isnum(ir->t))
-    asm_callid(as, ir, irt_isi64(ir->t) ? IRCALL_lj_carith_powi64 :
-					  IRCALL_lj_carith_powu64);
-  else
-#endif
-    asm_callid(as, ir, IRCALL_lj_vm_powi);
-}
-
 #define asm_addov(as, ir)	asm_add(as, ir)
 #define asm_subov(as, ir)	asm_sub(as, ir)
 #define asm_mulov(as, ir)	asm_mul(as, ir)
 
+#define asm_fpdiv(as, ir)	asm_fparith(as, ir, A64I_FDIVd)
 #define asm_abs(as, ir)		asm_fpunary(as, ir, A64I_FABS)
-#define asm_atan2(as, ir)	asm_callid(as, ir, IRCALL_atan2)
-#define asm_ldexp(as, ir)	asm_callid(as, ir, IRCALL_ldexp)
-
-static void asm_mod(ASMState *as, IRIns *ir)
-{
-#if LJ_HASFFI
-  if (!irt_isint(ir->t))
-    asm_callid(as, ir, irt_isi64(ir->t) ? IRCALL_lj_carith_modi64 :
-					  IRCALL_lj_carith_modu64);
-  else
-#endif
-    asm_callid(as, ir, IRCALL_lj_vm_modi);
-}
 
 static void asm_neg(ASMState *as, IRIns *ir)
 {
@@ -1586,7 +1560,7 @@ static void asm_fpmin_max(ASMState *as, IRIns *ir, A64CC fcc)
   Reg dest = (ra_dest(as, ir, RSET_FPR) & 31);
   Reg right, left = ra_alloc2(as, ir, RSET_FPR);
   right = ((left >> 8) & 31); left &= 31;
-  emit_dnm(as, A64I_FCSELd | A64F_CC(fcc), dest, left, right);
+  emit_dnm(as, A64I_FCSELd | A64F_CC(fcc), dest, right, left);
   emit_nm(as, A64I_FCMPd, left, right);
 }
 
@@ -1598,8 +1572,8 @@ static void asm_min_max(ASMState *as, IRIns *ir, A64CC cc, A64CC fcc)
     asm_intmin_max(as, ir, cc);
 }
 
-#define asm_max(as, ir)		asm_min_max(as, ir, CC_GT, CC_HI)
-#define asm_min(as, ir)		asm_min_max(as, ir, CC_LT, CC_LO)
+#define asm_min(as, ir)		asm_min_max(as, ir, CC_LT, CC_PL)
+#define asm_max(as, ir)		asm_min_max(as, ir, CC_GT, CC_LE)
 
 /* -- Comparisons --------------------------------------------------------- */
 
@@ -1850,7 +1824,7 @@ static void asm_loop_fixup(ASMState *as)
     p[-2] |= ((uint32_t)delta & mask) << 5;
   } else {
     ptrdiff_t delta = target - (p - 1);
-    p[-1] = A64I_B | ((uint32_t)(delta) & 0x03ffffffu);
+    p[-1] = A64I_B | A64F_S26(delta);
   }
 }
 
@@ -1909,7 +1883,7 @@ static void asm_tail_fixup(ASMState *as, TraceNo lnk)
   /* Undo the sp adjustment in BC_JLOOP when exiting to the interpreter. */
   int32_t spadj = as->T->spadjust + (lnk ? 0 : sps_scale(SPS_FIXED));
   if (spadj == 0) {
-    *--p = A64I_NOP;
+    *--p = A64I_LE(A64I_NOP);
     as->mctop = p;
   } else {
     /* Patch stack adjustment. */
@@ -1919,7 +1893,7 @@ static void asm_tail_fixup(ASMState *as, TraceNo lnk)
   }
   /* Patch exit branch. */
   target = lnk ? traceref(as->J, lnk)->mcode : (MCode *)lj_vm_exit_interp;
-  p[-1] = A64I_B | (((target-p)+1)&0x03ffffffu);
+  p[-1] = A64I_B | A64F_S26((target-p)+1);
 }
 
 /* Prepare tail of code. */
@@ -1962,6 +1936,19 @@ static void asm_setup_target(ASMState *as)
   asm_exitstub_setup(as, as->T->nsnap + (as->parent ? 1 : 0));
 }
 
+#if LJ_BE
+/* ARM64 instructions are always little-endian. Swap for ARM64BE. */
+static void asm_mcode_fixup(MCode *mcode, MSize size)
+{
+  MCode *pe = (MCode *)((char *)mcode + size);
+  while (mcode < pe) {
+    MCode ins = *mcode;
+    *mcode++ = lj_bswap(ins);
+  }
+}
+#define LJ_TARGET_MCODE_FIXUP	1
+#endif
+
 /* -- Trace patching ------------------------------------------------------ */
 
 /* Patch exit jumps of existing machine code to a new target. */
@@ -1969,40 +1956,50 @@ void lj_asm_patchexit(jit_State *J, GCtrace *T, ExitNo exitno, MCode *target)
 {
   MCode *p = T->mcode;
   MCode *pe = (MCode *)((char *)p + T->szmcode);
-  MCode *cstart = NULL, *cend = p;
+  MCode *cstart = NULL;
   MCode *mcarea = lj_mcode_patch(J, p, 0);
   MCode *px = exitstub_trace_addr(T, exitno);
+  /* Note: this assumes a trace exit is only ever patched once. */
   for (; p < pe; p++) {
     /* Look for exitstub branch, replace with branch to target. */
-    uint32_t ins = *p;
+    ptrdiff_t delta = target - p;
+    MCode ins = A64I_LE(*p);
     if ((ins & 0xff000000u) == 0x54000000u &&
 	((ins ^ ((px-p)<<5)) & 0x00ffffe0u) == 0) {
-      /* Patch bcc exitstub. */
-      *p = (ins & 0xff00001fu) | (((target-p)<<5) & 0x00ffffe0u);
-      cend = p+1;
-      if (!cstart) cstart = p;
+      /* Patch bcc, if within range. */
+      if (A64F_S_OK(delta, 19)) {
+	*p = A64I_LE((ins & 0xff00001fu) | A64F_S19(delta));
+	if (!cstart) cstart = p;
+      }
     } else if ((ins & 0xfc000000u) == 0x14000000u &&
 	       ((ins ^ (px-p)) & 0x03ffffffu) == 0) {
-      /* Patch b exitstub. */
-      *p = (ins & 0xfc000000u) | ((target-p) & 0x03ffffffu);
-      cend = p+1;
+      /* Patch b. */
+      lua_assert(A64F_S_OK(delta, 26));
+      *p = A64I_LE((ins & 0xfc000000u) | A64F_S26(delta));
       if (!cstart) cstart = p;
     } else if ((ins & 0x7e000000u) == 0x34000000u &&
 	       ((ins ^ ((px-p)<<5)) & 0x00ffffe0u) == 0) {
-      /* Patch cbz/cbnz exitstub. */
-      *p = (ins & 0xff00001f) | (((target-p)<<5) & 0x00ffffe0u);
-      cend = p+1;
-      if (!cstart) cstart = p;
+      /* Patch cbz/cbnz, if within range. */
+      if (A64F_S_OK(delta, 19)) {
+	*p = A64I_LE((ins & 0xff00001fu) | A64F_S19(delta));
+	if (!cstart) cstart = p;
+      }
     } else if ((ins & 0x7e000000u) == 0x36000000u &&
 	       ((ins ^ ((px-p)<<5)) & 0x0007ffe0u) == 0) {
-      /* Patch tbz/tbnz exitstub. */
-      *p = (ins & 0xfff8001fu) | (((target-p)<<5) & 0x0007ffe0u);
-      cend = p+1;
-      if (!cstart) cstart = p;
+      /* Patch tbz/tbnz, if within range. */
+      if (A64F_S_OK(delta, 14)) {
+	*p = A64I_LE((ins & 0xfff8001fu) | A64F_S14(delta));
+	if (!cstart) cstart = p;
+      }
     }
   }
-  lua_assert(cstart != NULL);
-  lj_mcode_sync(cstart, cend);
+  {  /* Always patch long-range branch in exit stub itself. */
+    ptrdiff_t delta = target - px;
+    lua_assert(A64F_S_OK(delta, 26));
+    *px = A64I_B | A64F_S26(delta);
+    if (!cstart) cstart = px;
+  }
+  lj_mcode_sync(cstart, px+1);
   lj_mcode_patch(J, mcarea, 1);
 }
 

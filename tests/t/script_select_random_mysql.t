@@ -12,8 +12,8 @@ select_random_*.lua + MySQL tests
   *************************** 1. row ***************************
   sbtest1
   CREATE TABLE `sbtest1` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `k` int(11) NOT NULL DEFAULT '0',
+    `id` int* NOT NULL AUTO_INCREMENT, (glob)
+    `k` int* NOT NULL DEFAULT '0', (glob)
     `c` char(120)* NOT NULL DEFAULT '', (glob)
     `pad` char(60)* NOT NULL DEFAULT '', (glob)
     PRIMARY KEY (`id`),
@@ -48,8 +48,9 @@ select_random_*.lua + MySQL tests
       ignored errors:                      0      (0.00 per sec.)
       reconnects:                          0      (0.00 per sec.)
   
-  General statistics:
-      total time:                          *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:                        *s (glob)
       total number of events:              100
   
   Latency (ms):
@@ -82,8 +83,8 @@ select_random_*.lua + MySQL tests
   *************************** 1. row ***************************
   sbtest1
   CREATE TABLE `sbtest1` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `k` int(11) NOT NULL DEFAULT '0',
+    `id` int* NOT NULL AUTO_INCREMENT, (glob)
+    `k` int* NOT NULL DEFAULT '0', (glob)
     `c` char(120)* NOT NULL DEFAULT '', (glob)
     `pad` char(60)* NOT NULL DEFAULT '', (glob)
     PRIMARY KEY (`id`),
@@ -118,8 +119,9 @@ select_random_*.lua + MySQL tests
       ignored errors:                      0      (0.00 per sec.)
       reconnects:                          0      (0.00 per sec.)
   
-  General statistics:
-      total time:                          *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:                        *s (glob)
       total number of events:              100
   
   Latency (ms):

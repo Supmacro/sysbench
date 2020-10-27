@@ -16,42 +16,49 @@
 -- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 -- ----------------------------------------------------------------------
--- Read-Only OLTP benchmark
+-- Read/Write OLTP benchmark
 -- ----------------------------------------------------------------------
 
 require("oltp_common")
 
 function prepare_statements()
-   prepare_point_selects()
 
-   if not sysbench.opt.skip_trx then
-      prepare_begin()
-      prepare_commit()
-   end
+    -- The top 13 elements in the queue must all be 'DQL' --
+    local j
+    for j=1, 13 do
+        
+        prepare_read_where_cond(queue[j]) 
+        prepare_for_each_table(queue[j])
+    end
 
-   if sysbench.opt.range_selects then
-      prepare_simple_ranges()
-      prepare_sum_ranges()
-      prepare_order_ranges()
-      prepare_distinct_ranges()
-   end
 end
+
 
 function event()
-   if not sysbench.opt.skip_trx then
-      begin()
-   end
 
-   execute_point_selects()
+    -- 1 query per transaction --
+    local rng = sysbench.rand.default(1, 1000)
+    local no = rng%13 + 1
 
-   if sysbench.opt.range_selects then
-      execute_simple_ranges()
-      execute_sum_ranges()
-      execute_order_ranges()
-      execute_distinct_ranges()
-   end
+    if(queue[no] ~= nil) then
+        local relt = execute_point_selects(queue[no])
+        if(relt ~= nil) then
+            relt:free()
+        end
+    end
 
-   if not sysbench.opt.skip_trx then
-      commit()
-   end
+
+    --[[  -- 13 query per transaction --
+   
+    local j
+    for j=1, 13 do 
+        local relt = execute_point_selects(queue[j])
+        if relt ~= nil then
+            relt:free()
+        end
+    end
+
+    -----END ]]
+
 end
+

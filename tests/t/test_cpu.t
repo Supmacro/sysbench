@@ -30,8 +30,9 @@ cpu benchmark tests
   CPU speed:
       events per second: *.* (glob)
   
-  General statistics:
-      total time:                          *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:                        *s (glob)
       total number of events:              100
   
   Latency (ms):

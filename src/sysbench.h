@@ -105,6 +105,9 @@ typedef struct {
   uint64_t errors;              /* Number of ignored errors */
   uint64_t reconnects;          /* Number of reconnects to server */
 
+  uint64_t bytes_read;          /* Bytes read */
+  uint64_t bytes_written;       /* Bytes written */
+
   uint64_t queue_length;        /* Event queue length (tx_rate-only) */
   uint64_t concurrency;         /* Number of in-flight events (tx_rate-only) */
 } sb_stat_t;
@@ -202,7 +205,9 @@ typedef struct
   int             force_shutdown CK_CC_CACHELINE; /* whether we must force test
                                                   shutdown */
   int             forced_shutdown_in_progress;
+  int             warmup_time;  /* warmup time */
   uint64_t        nevents CK_CC_CACHELINE; /* event counter */
+  const char      *luajit_cmd; /* LuaJIT command */
 } sb_globals_t;
 
 extern sb_globals_t sb_globals CK_CC_CACHELINE;

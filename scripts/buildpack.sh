@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2017-2018 Alexey Kopytov <akopytov@gmail.com>
+# Copyright (C) 2017-2019 Alexey Kopytov <akopytov@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# Build packages for a specified architecture and upload them packagecloud.io
+# Build packages for a specified architecture and upload them to packagecloud.io
 # Expects the following environment variables to be defined:
 #
 #   ARCH - architecture. 'aarch64', 'x86_64 and 'i386' are currently supported
@@ -49,35 +49,40 @@ PACKPACK_REPO=${PACKPACK_REPO:-akopytov/packpack}
 distros_x86_64=(
     "el 6 x86_64"
     "el 7 x86_64"
-    "fedora 27 x86_64"
-    "fedora 28 x86_64"
-    "ubuntu trusty x86_64"
+    "el 8 x86_64"
+    "fedora 29 x86_64"
+    "fedora 30 x86_64"
+    "fedora 31 x86_64"
     "ubuntu xenial x86_64"
-    "ubuntu artful x86_64"
     "ubuntu bionic x86_64"
+    "ubuntu eoan x86_64"
+    "ubuntu focal x86_64"
     "debian jessie x86_64"
     "debian stretch x86_64"
+    "debian buster x86_64"
 )
 
 distros_i386=(
-    "ubuntu trusty i386"
     "ubuntu xenial i386"
-    "ubuntu artful i386"
     "ubuntu bionic i386"
+    "ubuntu eoan i386"
     "debian jessie i386"
     "debian stretch i386"
+    "debian buster i386"
 )
 
 distros_aarch64=(
     "el 7 aarch64"
-    "fedora 27 aarch64"
-    "fedora 28 aarch64"
-    "ubuntu artful aarch64"
+    "fedora 29 aarch64"
+    "fedora 30 aarch64"
+    "fedora 31 aarch64"
     "ubuntu bionic aarch64"
-    "ubuntu trusty aarch64"
+    "ubuntu eoan aarch64"
+    "ubuntu focal aarch64"
     "ubuntu xenial aarch64"
     "debian jessie aarch64"
     "debian stretch aarch64"
+    "debian buster aarch64"
 )
 
 main()
@@ -92,9 +97,10 @@ main()
         exit 1
     fi
 
-    if [ ! which package_cloud >/dev/null 2>&1 ]; then
+    if ! which package_cloud >/dev/null 2>&1 ; then
         echo "This script requires package_cloud. You can install it by running:"
         echo "  gem install package_cloud"
+        exit 1
     fi
 
     if [ ! -d packpack ]; then
@@ -178,9 +184,12 @@ main()
 
         echo "Pushing packages to ${PACKAGECLOUD_USER}/${PACKAGECLOUD_REPO}"
 
-        package_cloud push ${PACKAGECLOUD_EXTRA_ARGS} \
-                      ${PACKAGECLOUD_USER}/${PACKAGECLOUD_REPO}/${OS}/${DIST} \
-                      $files
+        for f in $files ; do
+            echo $f
+            package_cloud push ${PACKAGECLOUD_EXTRA_ARGS} \
+                          ${PACKAGECLOUD_USER}/${PACKAGECLOUD_REPO}/${OS}/${DIST} \
+                          $f
+        done
 
         OS=${PPOS} packpack/packpack clean
     done

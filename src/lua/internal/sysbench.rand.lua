@@ -27,10 +27,11 @@ uint64_t sb_rand_uniform_uint64(void);
 uint32_t sb_rand_default(uint32_t, uint32_t);
 uint32_t sb_rand_uniform(uint32_t, uint32_t);
 uint32_t sb_rand_gaussian(uint32_t, uint32_t);
-uint32_t sb_rand_special(uint32_t, uint32_t);
 uint32_t sb_rand_pareto(uint32_t, uint32_t);
+uint32_t sb_rand_zipfian(uint32_t, uint32_t);
 uint32_t sb_rand_unique(void);
 void sb_rand_str(const char *, char *);
+uint32_t sb_rand_varstr(char *, uint32_t, uint32_t);
 double sb_rand_uniform_double(void);
 ]]
 
@@ -50,12 +51,12 @@ function sysbench.rand.gaussian(a, b)
    return ffi.C.sb_rand_gaussian(a, b)
 end
 
-function sysbench.rand.special(a, b)
-   return ffi.C.sb_rand_special(a, b)
-end
-
 function sysbench.rand.pareto(a, b)
    return ffi.C.sb_rand_pareto(a, b)
+end
+
+function sysbench.rand.zipfian(a, b)
+   return ffi.C.sb_rand_zipfian(a, b)
 end
 
 function sysbench.rand.unique()
@@ -67,6 +68,15 @@ function sysbench.rand.string(fmt)
    local buf = ffi.new("uint8_t[?]", buflen)
    ffi.C.sb_rand_str(fmt, buf)
    return ffi.string(buf, buflen)
+end
+
+function sysbench.rand.varstring(min_len, max_len)
+   assert(min_len <= max_len)
+   assert(max_len > 0)
+   local buflen = max_len
+   local buf = ffi.new("uint8_t[?]", buflen)
+   local nchars = ffi.C.sb_rand_varstr(buf, min_len, max_len)
+   return ffi.string(buf, nchars)
 end
 
 function sysbench.rand.uniform_double()

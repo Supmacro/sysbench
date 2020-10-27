@@ -1,6 +1,6 @@
 /*
 ** State and stack handling.
-** Copyright (C) 2005-2017 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2020 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2008 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -224,9 +224,6 @@ LUA_API lua_State *lua_newstate(lua_Alloc f, void *ud)
     close_state(L);
     return NULL;
   }
-  L->status = 0;
-  G2J(g)->prngstate = rand();
-
 #ifdef LJ_TARGET_JUMPRANGE
 #if LJ_TARGET_MIPS
   /* Use the middle of the 256MB-aligned region. */
@@ -235,8 +232,10 @@ LUA_API lua_State *lua_newstate(lua_Alloc f, void *ud)
 #else
   uintptr_t target = (uintptr_t)(void *)lj_vm_exit_handler & ~(uintptr_t)0xffff;
 #endif
+#ifdef LJ_HASJIT
   uintptr_t range = (1u << LJ_TARGET_JUMPRANGE) - (1u << 21);
   uintptr_t allocbase;
+  G2J(g)->prngstate = rand();
   if (LJ_PRNG_BITS(G2J(g), 1)) {
     allocbase = (target - range > target) ? 0 : target - range;
   } else {
@@ -246,6 +245,8 @@ LUA_API lua_State *lua_newstate(lua_Alloc f, void *ud)
   G2J(g)->range = range;
   G2J(g)->allocbase = allocbase;
 #endif
+#endif
+  L->status = LUA_OK;
   return L;
 }
 
@@ -277,10 +278,10 @@ LUA_API void lua_close(lua_State *L)
 #endif
   for (i = 0;;) {
     hook_enter(g);
-    L->status = 0;
+    L->status = LUA_OK;
     L->base = L->top = tvref(L->stack) + 1 + LJ_FR2;
     L->cframe = NULL;
-    if (lj_vm_cpcall(L, NULL, NULL, cpfinalize) == 0) {
+    if (lj_vm_cpcall(L, NULL, NULL, cpfinalize) == LUA_OK) {
       if (++i >= 10) break;
       lj_gc_separateudata(g, 1);  /* Separate udata again. */
       if (gcref(g->gc.mmudata) == NULL)  /* Until nothing is left to do. */
@@ -295,7 +296,7 @@ lua_State *lj_state_new(lua_State *L)
   lua_State *L1 = lj_mem_newobj(L, lua_State);
   L1->gct = ~LJ_TTHREAD;
   L1->dummy_ffid = FF_C;
-  L1->status = 0;
+  L1->status = LUA_OK;
   L1->stacksize = 0;
   setmref(L1->stack, NULL);
   L1->cframe = NULL;

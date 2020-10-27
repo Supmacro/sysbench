@@ -57,18 +57,10 @@ fileio benchmark tests
   Threads started!
   
   
-  File operations:
-      reads/s:                      *.* (glob)
-      writes/s:                     *.* (glob)
-      fsyncs/s:                     *.* (glob)
-  
   Throughput:
-      read, MiB/s:                  *.* (glob)
-      written, MiB/s:               *.* (glob)
-  
-  General statistics:
-      total time:                          *.*s (glob)
-      total number of events:              150
+           read:  IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           write: IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           fsync: IOPS=*.* (glob)
   
   Latency (ms):
            min:                              *.* (glob)
@@ -76,10 +68,6 @@ fileio benchmark tests
            max:                              *.* (glob)
            95th percentile:         *.* (glob)
            sum: *.* (glob)
-  
-  Threads fairness:
-      events (avg/stddev):           150.0000/0.00
-      execution time (avg/stddev):   *.*/0.00 (glob)
   
   $ sysbench $fileio_args --events=150 --file-test-mode=rndrd run
   sysbench *.* * (glob)
@@ -104,18 +92,10 @@ fileio benchmark tests
   Threads started!
   
   
-  File operations:
-      reads/s:                      *.* (glob)
-      writes/s:                     0.00
-      fsyncs/s:                     0.00
-  
   Throughput:
-      read, MiB/s:                  *.* (glob)
-      written, MiB/s:               0.00
-  
-  General statistics:
-      total time:                          *.*s (glob)
-      total number of events:              150
+           read:  IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           write: IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           fsync: IOPS=*.* (glob)
   
   Latency (ms):
            min:                              *.* (glob)
@@ -123,10 +103,6 @@ fileio benchmark tests
            max:                              *.* (glob)
            95th percentile:         *.* (glob)
            sum: *.* (glob)
-  
-  Threads fairness:
-      events (avg/stddev):           150.0000/0.00
-      execution time (avg/stddev):   *.*/0.00 (glob)
   
 
   $ sysbench $fileio_args --events=150 --file-test-mode=seqrd run
@@ -150,18 +126,10 @@ fileio benchmark tests
   Threads started!
   
   
-  File operations:
-      reads/s:                      *.* (glob)
-      writes/s:                     0.00
-      fsyncs/s:                     0.00
-  
   Throughput:
-      read, MiB/s:                  *.* (glob)
-      written, MiB/s:               0.00
-  
-  General statistics:
-      total time:                          *.*s (glob)
-      total number of events:              150
+           read:  IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           write: IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           fsync: IOPS=*.* (glob)
   
   Latency (ms):
            min:                              *.* (glob)
@@ -169,10 +137,6 @@ fileio benchmark tests
            max:                              *.* (glob)
            95th percentile:         *.* (glob)
            sum: *.* (glob)
-  
-  Threads fairness:
-      events (avg/stddev):           150.0000/0.00
-      execution time (avg/stddev):   *.*/0.00 (glob)
   
 
   $ sysbench $fileio_args --events=150 --file-test-mode=rndwr run
@@ -198,18 +162,10 @@ fileio benchmark tests
   Threads started!
   
   
-  File operations:
-      reads/s:                      0.00
-      writes/s:                     *.* (glob)
-      fsyncs/s:                     *.* (glob)
-  
   Throughput:
-      read, MiB/s:                  0.00
-      written, MiB/s:               *.* (glob)
-  
-  General statistics:
-      total time:                          *.*s (glob)
-      total number of events:              150
+           read:  IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           write: IOPS=*.* *.* MiB/s (*.* MB/s) (glob)
+           fsync: IOPS=*.* (glob)
   
   Latency (ms):
            min:                              *.* (glob)
@@ -217,10 +173,6 @@ fileio benchmark tests
            max:                              *.* (glob)
            95th percentile:         *.* (glob)
            sum: *.* (glob)
-  
-  Threads fairness:
-      events (avg/stddev):           150.0000/0.00
-      execution time (avg/stddev):   *.*/0.00 (glob)
   
 
   $ sysbench $fileio_args --events=150 --file-test-mode=rndwr --validate run | grep Validation
@@ -362,18 +314,10 @@ GH-229: "--file-fsync-freq=0" seems to prevent fsync() at end of test
   Threads started!
   
   
-  File operations:
-      reads/s:                      0.00
-      writes/s:                     [^0].* (re)
-      fsyncs/s:                     [^0].* (re)
-  
   Throughput:
-      read, MiB/s:                  0.00
-      written, MiB/s:               [^0].* (re)
-  
-  General statistics:
-      total time:                          [^0].*s (re)
-      total number of events:              [^0].* (re)
+           read:  IOPS=0.00 0.00 MiB/s (0.00 MB/s)
+           write: IOPS=[^0].* [^0].* MiB/s \([^0].* MB/s\) (re)
+           fsync: IOPS=[^0].* (re)
   
   Latency (ms):
            min:                              *.* (glob)
@@ -381,10 +325,6 @@ GH-229: "--file-fsync-freq=0" seems to prevent fsync() at end of test
            max:                              *.* (glob)
            95th percentile:         *.* (glob)
            sum: *.* (glob)
-  
-  Threads fairness:
-      events (avg/stddev):           *.*/0.00 (glob)
-      execution time (avg/stddev):   *.*/0.00 (glob)
   
   $ sysbench $args --file-fsync-end=off run
   sysbench * (glob)
@@ -405,18 +345,10 @@ GH-229: "--file-fsync-freq=0" seems to prevent fsync() at end of test
   Threads started!
   
   
-  File operations:
-      reads/s:                      0.00
-      writes/s:                     [^0].* (re)
-      fsyncs/s:                     0.00
-  
   Throughput:
-      read, MiB/s:                  0.00
-      written, MiB/s:               [^0].* (re)
-  
-  General statistics:
-      total time:                          [^0].*s (re)
-      total number of events:              [^0].* (re)
+           read:  IOPS=0.00 0.00 MiB/s (0.00 MB/s)
+           write: IOPS=[^0].* [^0].* MiB/s \([^0].* MB/s\) (re)
+           fsync: IOPS=0.00
   
   Latency (ms):
            min:                              *.* (glob)
@@ -424,8 +356,4 @@ GH-229: "--file-fsync-freq=0" seems to prevent fsync() at end of test
            max:                              *.* (glob)
            95th percentile:         *.* (glob)
            sum: *.* (glob)
-  
-  Threads fairness:
-      events (avg/stddev):           *.*/0.00 (glob)
-      execution time (avg/stddev):   *.*/0.00 (glob)
   

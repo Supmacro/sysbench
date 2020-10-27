@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
-AC_INIT([sysbench],[1.0.15],[https://github.com/akopytov/sysbench/issues],
+AC_INIT([sysbench],[1.1.0],[https://github.com/akopytov/sysbench/issues],
         [sysbench], [https://github.com/akopytov/sysbench])
 AC_CONFIG_AUX_DIR([config])
 
@@ -70,12 +70,6 @@ AX_COMPILER_VENDOR
 # Checks for user arguments
 
 AC_LIB_PREFIX()
-# Additional linker flags
-AC_ARG_WITH([extra-ldflags],
-              AS_HELP_STRING([--with-extra-ldflags],[additional linker flags, e.g. -all-static]),
-              EXTRA_LDFLAGS=$withval
-)
-AC_SUBST(EXTRA_LDFLAGS)
 
 CPPFLAGS="-D_GNU_SOURCE ${CPPFLAGS}"
 
@@ -90,7 +84,7 @@ if test "$GCC" = "yes"
 then
   CFLAGS="-ggdb3 ${CFLAGS}"
   DEBUG_CFLAGS="-O0"
-  OPTIMIZE_CFLAGS="-O2 -funroll-loops"
+  OPTIMIZE_CFLAGS="-O3 -funroll-loops"
   GCOV_CFLAGS="-O0 --coverage"
   GCOV_LDFLAGS="-coverage"
   ASAN_CFLAGS="-fsanitize=address"
@@ -132,40 +126,6 @@ AS_IF([test "x$with_mysql" != "xno"],
    [mysql_support=yes],
    [mysql_support=no])
 AC_MSG_RESULT([$mysql_support])
-
-# Check if we should compile with Drizzle support
-AC_ARG_WITH([drizzle],
-            AS_HELP_STRING([--with-drizzle],
-                           [compile with Drizzle support (default is disabled)]),
-            [], [with_drizzle=no])
-AC_MSG_CHECKING([whether to compile with Drizzle support])
-AS_IF([test "x$with_drizzle" != "xno"],
-   [drizzle_support=yes],
-   [drizzle_support=no])
-AC_MSG_RESULT([$drizzle_support])
-
-# Check if we should compile with libattachsql support
-AC_ARG_WITH([attachsql],
-            AS_HELP_STRING([--with-attachsql],
-                           [compile with libattachsql support (default is disabled)]),
-            [], [with_attachsql=no])
-AC_MSG_CHECKING([whether to compile with libattachsql support])
-AS_IF([test "x$with_attachsql" != "xno"],
-   [attachsql_support=yes],
-   [attachsql_support=no])
-AC_MSG_RESULT([$attachsql_support])
-
-
-# Check if we should compile with Oracle support
-AC_ARG_WITH([oracle],
-            AS_HELP_STRING([--with-oracle],
-                           [compile with Oracle support (default is disabled)]),
-            [], [with_oracle=no])
-AC_MSG_CHECKING([whether to compile with Oracle support])
-AS_IF([test "x$with_oracle" != "xno"],
-   [oracle_support=yes],
-   [oracle_support=no])
-AC_MSG_RESULT([$oracle_support])
 
 # Check if we should compile with PostgreSQL support
 AC_ARG_WITH([pgsql],
@@ -228,9 +188,6 @@ AC_CHECK_DECLS(O_SYNC, ,
 )
 
 
-# Checks for programs.
-AX_CHECK_DOCBOOK
-
 # Checks for libraries.
 
 ACX_PTHREAD
@@ -238,43 +195,6 @@ ACX_PTHREAD
 AC_CHECK_LIB(m, sqrt)
 
 SB_CHECK_MYSQL
-
-AS_IF([test "x$with_drizzle" != xno], [
-  AC_LIB_HAVE_LINKFLAGS(drizzle,,
-    [#include <libdrizzle/drizzle.h>],
-    [
-     int x= DRIZZLE_RETURN_ERROR_CODE;
-     const char *version= drizzle_version();
-    ])
-    AS_IF([test "x$ac_cv_libdrizzle" = xyes], [
-      AC_DEFINE([USE_DRIZZLE],1,
-                [Define to 1 if you want to compile with Drizzle support])
-    ])
-])
-AM_CONDITIONAL(USE_DRIZZLE, test x$ac_cv_libdrizzle = xyes)
-
-AS_IF([test "x$with_attachsql" != xno], [
-  AC_LIB_HAVE_LINKFLAGS(attachsql,,
-    [#include <libattachsql-1.0/attachsql.h>],
-    [
-     const char *version= attachsql_get_library_version();
-    ])
-    AS_IF([test "x$ac_cv_libattachsql" = xyes], [
-      AC_DEFINE(USE_ATTACHSQL,1,
-                [Define to 1 if you want to compile with libattachsql support])
-    ])
-])
-AM_CONDITIONAL(USE_ATTACHSQL, test x$ac_cv_libattachsql = xyes)
-
-
-AS_IF([test x$with_oracle != xno], [
-    AC_DEFINE(USE_ORACLE,1,[Define to 1 if you want to compile with Oracle support])
-    ORA_LIBS="-L${sb_with_oracle}/lib -lclntsh"
-    ORA_CFLAGS="-I${with_oracle}/include -I${with_oracle}/rdbms/demo -I${with_oracle}/rdbms/public"
-    AC_SUBST([ORA_LIBS])
-    AC_SUBST([ORA_CFLAGS])
-])
-AM_CONDITIONAL(USE_ORACLE, test x$with_oracle != xno)
 
 AS_IF([test x$with_pgsql != xno], [
     AC_CHECK_PGSQL([$with_pgsql])
@@ -299,11 +219,6 @@ AC_SUBST([USE_XUGUSQL])
 # Check for libaio
 AC_CHECK_AIO
 AM_CONDITIONAL(USE_AIO, test x$enable_aio = xyes)
-
-# Check for advanced memory allocation libraries 
-AC_CHECK_LIB([umem], [malloc], [EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lumem"], 
- AC_CHECK_LIB([mtmalloc], [malloc], [EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lmtmalloc"]) 
-) 
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -375,6 +290,7 @@ isatty \
 memalign \
 memset \
 posix_memalign \
+pthread_cancel \
 pthread_yield \
 setvbuf \
 sqrt \
@@ -464,7 +380,7 @@ then
   CC_WARNINGS="-Wall -Wextra -Wpointer-arith -Wbad-function-cast \
 -Wstrict-prototypes -Wnested-externs -Wno-format-zero-length \
 -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \
--Wredundant-decls -Wcast-align ${W_FAIL}"
+-Wredundant-decls -Wcast-align -Wvla ${W_FAIL}"
 fi
 
 if test "$ax_cv_c_compiler_vendor" = "sun"
@@ -486,7 +402,7 @@ AC_SUBST(AM_LDFLAGS)
 git=$(which git)
 if test -n "$git"
 then
-        SB_GIT_SHA=""
+        SB_GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null)
         if test -n "$SB_GIT_SHA"
         then
           SB_GIT_SHA="-$SB_GIT_SHA"
@@ -497,19 +413,13 @@ AC_SUBST([SB_GIT_SHA])
 
 AC_CONFIG_FILES([
 Makefile
-doc/xsl/Makefile
-doc/xsl/catalog.xml
-doc/Makefile
 third_party/luajit/Makefile
 third_party/concurrency_kit/Makefile
 src/Makefile
 src/drivers/Makefile
 src/drivers/mysql/Makefile
-src/drivers/drizzle/Makefile
-src/drivers/oracle/Makefile
 src/drivers/pgsql/Makefile
 src/drivers/xugusql/Makefile
-src/drivers/attachsql/Makefile
 src/tests/Makefile
 src/tests/cpu/Makefile
 src/tests/fileio/Makefile
@@ -531,7 +441,6 @@ AC_MSG_RESULT([CFLAGS             : ${CFLAGS} ${AM_CFLAGS}])
 AC_MSG_RESULT([CPPFLAGS           : ${CPPFLAGS} ${AM_CPPFLAGS}])
 AC_MSG_RESULT([LDFLAGS            : ${LDFLAGS} ${AM_LDFLAGS}])
 AC_MSG_RESULT([LIBS               : ${LIBS}])
-AC_MSG_RESULT([EXTRA_LDFLAGS      : ${EXTRA_LDFLAGS}])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([prefix             : $(eval echo ${prefix})])
 AC_MSG_RESULT([bindir             : $(eval echo ${bindir})])
@@ -540,9 +449,6 @@ AC_MSG_RESULT([mandir             : $(eval echo ${mandir})])
 AC_MSG_RESULT([datadir            : $(eval echo ${datadir})])
 AC_MSG_RESULT([])
 AC_MSG_RESULT([MySQL support      : ${mysql_support}])
-AC_MSG_RESULT([Drizzle support    : ${drizzle_support}])
-AC_MSG_RESULT([AttachSQL support  : ${attachsql_support}])
-AC_MSG_RESULT([Oracle support     : ${oracle_support}])
 AC_MSG_RESULT([PostgreSQL support : ${pgsql_support}])
 AC_MSG_RESULT([XuguSQL support    : ${xugusql_support}])
 AC_MSG_RESULT([])

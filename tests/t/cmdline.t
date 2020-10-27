@@ -72,8 +72,9 @@
   
   event function
   
-  General statistics:
-      total time: *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:*s (glob)
       total number of events:              1
   
   Latency (ms):
@@ -282,8 +283,9 @@ Command line options tests
   dash-opt val
   
   
-  General statistics:
-      total time:                          *s (glob)
+  Throughput:
+      events/s (eps): *.* (glob)
+      time elapsed:                        *s (glob)
       total number of events:              1
   
   Latency (ms):
@@ -291,7 +293,7 @@ Command line options tests
            avg:                                  * (glob)
            max:                                  * (glob)
            95th percentile:                      * (glob)
-           sum:                                  * (glob)
+           sum: *.* (glob)
   
   Threads fairness:
       events (avg/stddev):           1.0000/0.00
@@ -412,6 +414,7 @@ Command line options tests
   [1]
 
   $ cat >cmdline.lua <<EOF
+  > sysbench.cmdline.options = { opt1 = {"opt1"}, opt2 = {"opt2"} }
   > function print_cmd()
   >   print("argv = " .. require("inspect")(sysbench.cmdline.argv))
   >   print(string.format("sysbench.cmdline.command = %s",sysbench.cmdline.command))

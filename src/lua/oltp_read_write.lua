@@ -22,44 +22,59 @@
 require("oltp_common")
 
 function prepare_statements()
-   if not sysbench.opt.skip_trx then
-      prepare_begin()
-      prepare_commit()
-   end
+    if not sysbench.opt.skip_trx then
+        prepare_begin()
+        prepare_commit()
+    end
 
-   prepare_point_selects()
-
-   if sysbench.opt.range_selects then
-      prepare_simple_ranges()
-      prepare_sum_ranges()
-      prepare_order_ranges()
-      prepare_distinct_ranges()
-   end
-
-   prepare_index_updates()
-   prepare_non_index_updates()
-   prepare_delete_inserts()
+    for k, v in pairs(queue) do
+        
+        if type(v) == "table" then
+            prepare_read_where_cond(v[1]) 
+            prepare_for_each_table(v[1])
+             
+        else
+            prepare_read_where_cond(v) 
+            prepare_for_each_table(v)
+        end
+        
+    end
 end
 
-function event()
-   if not sysbench.opt.skip_trx then
-      begin()
-   end
 
-   execute_point_selects()
+function event(tid)
 
-   if sysbench.opt.range_selects then
-      execute_simple_ranges()
-      execute_sum_ranges()
-      execute_order_ranges()
-      execute_distinct_ranges()
-   end
+    local rng = sysbench.rand.default(1, 1000)
+    local no = rng%29 + 14 
+        
+    if(queue[no] ~= nil and type(queue[no]) == "table") 
+    then
+        if not sysbench.opt.skip_trx then
+            begin()
+        end
 
-   execute_index_updates()
-   execute_non_index_updates()
-   execute_delete_inserts()
+        execute_index_update(tid, queue[no][1], 
+                                  queue[no][2], queue[no][3])
+        if not sysbench.opt.skip_trx then
+            commit()
+        end
+    end
 
-   if not sysbench.opt.skip_trx then
-      commit()
-   end
+    -- The top 9 elements in the queue must all be 'DQL' --
+    local j
+    for j = 1, 9 do
+            
+        rng = sysbench.rand.default(1, 1000)
+        no = rng%13 + 1
+
+        if(queue[no] ~= nil and type(queue[no]) ~= "table") then
+
+            local relt = execute_point_selects(queue[no])
+            if(relt ~= nil) then
+                relt:free()
+            end
+        end
+    end
+
 end
+

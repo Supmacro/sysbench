@@ -1,6 +1,6 @@
 /*
    Copyright (C) 2004 MySQL AB
-   Copyright (C) 2004-2017 Alexey Kopytov <akopytov@gmail.com>
+   Copyright (C) 2004-2018 Alexey Kopytov <akopytov@gmail.com>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,9 +19,6 @@
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
-#endif
-#ifdef _WIN32
-#include "sb_win.h"
 #endif
 #ifdef STDC_HEADERS
 # include <ctype.h>
@@ -43,8 +40,7 @@
 #include "sb_ck_pr.h"
 
 /* Query length limit for bulk insert queries */
-/* #define BULK_PACKET_SIZE (512*1024) */
-#define BULK_PACKET_SIZE (10*1024)
+#define BULK_PACKET_SIZE (512*1024)
 
 /* How many rows to insert before COMMITs (used in bulk insert) */
 #define ROWS_BEFORE_COMMIT 1000
@@ -103,18 +99,6 @@ int db_register(void)
   SB_LIST_INIT(&drivers);
 #ifdef USE_MYSQL
   register_driver_mysql(&drivers);
-#endif
-#ifdef USE_DRIZZLE
-  register_driver_drizzle(&drivers);
-#endif
-#ifdef USE_ATTACHSQL
-  register_driver_attachsql(&drivers);
-#endif
-#ifdef USE_DRIZZLECLIENT
-  register_driver_drizzleclient(&drivers);
-#endif
-#ifdef USE_ORACLE
-  register_driver_oracle(&drivers);
 #endif
 #ifdef USE_PGSQL
   register_driver_pgsql(&drivers);
@@ -688,12 +672,10 @@ int db_close(db_stmt_t *stmt)
     return 0;
   }
 
+  rc = con->driver->ops.close(stmt);
+
   if (stmt->query != NULL)
   {
-    if(con->driver->ops.close){
-        rc = con->driver->ops.close(stmt);
-    }
-
     free(stmt->query);
     stmt->query = NULL;
   }

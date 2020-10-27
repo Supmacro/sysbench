@@ -16,32 +16,46 @@
 -- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 -- ----------------------------------------------------------------------
--- Write-Only OLTP benchmark
+-- Read/Write OLTP benchmark
 -- ----------------------------------------------------------------------
 
 require("oltp_common")
 
 function prepare_statements()
-   if not sysbench.opt.skip_trx then
-      prepare_begin()
-      prepare_commit()
-   end
+    if not sysbench.opt.skip_trx then
+        prepare_begin()
+        prepare_commit()
+    end
 
-   prepare_index_updates()
-   prepare_non_index_updates()
-   prepare_delete_inserts()
+    for k, v in pairs(queue) do
+        
+        if type(v) == "table" then
+            prepare_read_where_cond(v[1]) 
+            prepare_for_each_table(v[1])
+             
+        end
+        
+    end
 end
 
-function event()
-   if not sysbench.opt.skip_trx then
-      begin()
-   end
 
-   execute_index_updates()
-   execute_non_index_updates()
-   execute_delete_inserts()
+function event(tid)
 
-   if not sysbench.opt.skip_trx then
-      commit()
-   end
+    local rng = sysbench.rand.default(1, 1000)
+    local no = rng%29 + 14 
+        
+    if(queue[no] ~= nil and type(queue[no]) == "table") 
+    then
+        if not sysbench.opt.skip_trx then
+            begin()
+        end
+
+        execute_index_update(tid, queue[no][1], 
+                                  queue[no][2], queue[no][3])
+        if not sysbench.opt.skip_trx then
+            commit()
+        end
+    end
+
 end
+

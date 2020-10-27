@@ -57,6 +57,9 @@ AS_IF([test "x$sb_cv_lib_ck" = "xsystem"],
       i686*)
         CK_CONFIGURE_FLAGS="--platform=i686"
         ;;
+      mips64*)
+        CK_CONFIGURE_FLAGS="--use-cc-builtins"
+        ;;
     esac
     # Add --enable-lse to CK build flags, if LSE instructions are supported by
     # the target architecture
@@ -90,7 +93,7 @@ AS_IF([test "x$sb_cv_lib_ck" = "xsystem"],
 )
 
 AC_DEFINE_UNQUOTED([SB_WITH_CK], ["$sb_use_ck"],
-  [Whether system or bundled Concurrency Ki is used])
+  [Whether system or bundled Concurrency Kit is used])
 
 AM_CONDITIONAL([USE_BUNDLED_CK], [test "x$sb_use_ck" = xbundled])
 ])

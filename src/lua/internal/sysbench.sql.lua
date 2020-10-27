@@ -56,7 +56,7 @@ typedef struct
   sql_value       *values;     /* Array of column values */
 } sql_row;
 
-/* Query type for statistics */
+/* Statistic counter types */
 
 typedef enum
 {
@@ -66,6 +66,8 @@ typedef enum
   SB_CNT_TRX,
   SB_CNT_ERROR,
   SB_CNT_RECONNECT,
+  SB_CNT_BYTES_READ,
+  SB_CNT_BYTES_WRITTEN,
   SB_CNT_MAX
 } sb_counter_type;
 
@@ -339,12 +341,10 @@ function sql_param.set(self, value)
       btype == sql_type.BIGINT
    then
       self.buffer[0] = value
-      self.data_len[0] = 8
    elseif btype == sql_type.FLOAT or
       btype == sql_type.DOUBLE
    then
       self.buffer[1] = value
-      self.data_len[0] = 8
    elseif btype == sql_type.CHAR or
       btype == sql_type.VARCHAR
    then
@@ -422,8 +422,6 @@ function statement_methods.bind_param(self, ...)
 
    local binds = ffi.new("sql_bind[?]", len)
 
-   local i, param
-
    for i, param in ipairs({...}) do
       binds[i-1].type = param.type
       binds[i-1].buffer = param.buffer
@@ -471,7 +469,6 @@ function result_methods.fetch_row(self)
       return nil
    end
 
-   local i
    for i = 0, self.nfields-1 do
       if row.values[i].ptr ~= nil then -- not a NULL value
          res[i+1] = ffi.string(row.values[i].ptr, tonumber(row.values[i].len))
