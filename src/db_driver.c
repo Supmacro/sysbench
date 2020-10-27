@@ -556,6 +556,13 @@ db_row_t *db_fetch_row(db_result_t *rs)
   if (rs->row.values == NULL)
   {
     rs->row.values = malloc(rs->nfields * sizeof(db_value_t));
+    rs->row.ptr = NULL;
+
+    int j = 0;
+    for(; j < rs->nfields; j++){
+        rs->row.values[j].len = 0;
+        rs->row.values[j].ptr = NULL;
+    }
   }
 
   if (con->driver->ops.fetch_row(rs, &rs->row))
@@ -681,10 +688,12 @@ int db_close(db_stmt_t *stmt)
     return 0;
   }
 
-  rc = con->driver->ops.close(stmt);
-
   if (stmt->query != NULL)
   {
+    if(con->driver->ops.close){
+        rc = con->driver->ops.close(stmt);
+    }
+
     free(stmt->query);
     stmt->query = NULL;
   }

@@ -355,8 +355,7 @@ int xugusql_drv_prepare(db_stmt_t *stmt, const char *query, size_t len)
     snl = XGCIHandleAlloc(db_conn->session, &db_stmt->stmt, HT_STATEMENT);
     db_stmt->param_cnt = param_cnt;
 
-    stmt->query = strdup(query);
-    if(stmt->query == NULL){
+    if(stmt->query == NULL && (stmt->query = strdup(query)) == NULL){
         return 1;
     }
 
@@ -508,12 +507,11 @@ int xugusql_drv_close(db_stmt_t *stmt)
         return 1;
     }
 
-    if(stmt->query != NULL){
-        free(stmt->query);
-        stmt->query = NULL;
+    if(db_stmt->stmt){
+        snl = XGCIHandleFree(db_stmt->stmt);
+        db_stmt->stmt = NULL;
     }
 
-    snl = XGCIHandleFree(db_stmt->stmt);
     free(db_stmt);
     stmt->ptr = NULL;
 
@@ -599,7 +597,6 @@ int xugusql_drv_fetch_row(db_result_t *rs, db_row_t *row)
     int                   *ctype;
     db_stmt_t             *stmt;
     stu_xugusql_stmt      *db_stmt;
-    db_value_t            *value;
 
     if((stmt = rs->statement) == NULL){
         return 1;
@@ -613,29 +610,36 @@ int xugusql_drv_fetch_row(db_result_t *rs, db_row_t *row)
         return 1;
     } 
 
-    row->ptr = calloc(rs->nfields, sizeof(int));
-    if(row->ptr == NULL){
-        return 1;
+    if(row->ptr == NULL)
+    {
+        row->ptr = calloc(rs->nfields, sizeof(int));
+        if(row->ptr == NULL)
+            return 1;
     }
+    
+    db_value_t  *pval = row->values;
 
-    value = row->values;
     for(i = 0; i != rs->nfields; i++){
         snl = XGCIParamGet(db_stmt->stmt, HT_STATEMENT, &tmp, i+1);
         snl = XGCIAttrGet((XGCIHANDLE)tmp, XGCI_DTYPE_PARAM, 
                 (void *)((int *)row->ptr+i), &rcode, XGCI_ATTR_DATA_TYPE);
         snl = XGCIAttrGet((XGCIHANDLE)tmp, XGCI_DTYPE_PARAM, 
-                &(value[i].len), &rcode, XGCI_ATTR_DATA_SIZE);
+                &(pval[i].len), &rcode, XGCI_ATTR_DATA_SIZE);
 
-        value[i].ptr = calloc(1, value[i].len + 1);
-        if(value[i].ptr == NULL){
-            return 1;
+        if(pval[i].ptr == NULL)
+        {
+            pval[i].ptr = calloc(1, pval[i].len + 1);
+            if(pval[i].ptr == NULL)
+                return 1;
+        }else{
+            bzero(pval[i].ptr, pval[i].len);
         }
     }
 
     ctype = (int *)row->ptr;
     for(i = 0; i != rs->nfields; i++){
-        snl = XGCIDefineByPos(db_stmt->stmt, i+1, (void *)value[i].ptr, 
-            value[i].len+1, ctype[i], &rc, &acl);
+        snl = XGCIDefineByPos(db_stmt->stmt, i+1, (void *)pval[i].ptr, 
+            pval[i].len+1, ctype[i], &rc, &acl);
     }
 
     snl = XGCIFetch(db_stmt->stmt);
