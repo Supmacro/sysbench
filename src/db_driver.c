@@ -542,7 +542,7 @@ db_row_t *db_fetch_row(db_result_t *rs)
     rs->row.values = malloc(rs->nfields * sizeof(db_value_t));
     rs->row.ptr = NULL;
 
-    int j = 0;
+    unsigned j = 0;
     for(; j < rs->nfields; j++){
         rs->row.values[j].len = 0;
         rs->row.values[j].ptr = NULL;
