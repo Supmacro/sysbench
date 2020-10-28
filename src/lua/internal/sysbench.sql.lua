@@ -341,10 +341,12 @@ function sql_param.set(self, value)
       btype == sql_type.BIGINT
    then
       self.buffer[0] = value
+      self.data_len[0] = 8
    elseif btype == sql_type.FLOAT or
       btype == sql_type.DOUBLE
    then
       self.buffer[1] = value
+      self.data_len[0] = 8
    elseif btype == sql_type.CHAR or
       btype == sql_type.VARCHAR
    then
