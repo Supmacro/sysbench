@@ -208,20 +208,7 @@ local M14,M100 ="########xxxxxx",
 local NC = "const"
 
 
-queue = {--[["dql_t8001", 
-         "dql_t5001", 
-         "dql_t3001", 
-         "dql_t4001",
-         "dql_t4002", 
-         "dql_t9001", 
-         "dql_t9002", 
-         "dql_t1001",
-         "dql_t4003", 
-         "dql_t1002", 
-         "dql_t1003", 
-         "dql_t1004",
-         "dql_t4004",--]]
-         {"dml_t1001", true, {"2"}},
+queue = {{"dml_t1001", true, {"2"}},
          "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
          "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t2001", true, {}},
