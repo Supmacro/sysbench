@@ -16,49 +16,66 @@
 -- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 -- ----------------------------------------------------------------------
--- Read/Write OLTP benchmark
+-- Read OLTP benchmark
 -- ----------------------------------------------------------------------
 
 require("oltp_common")
 
-function prepare_statements()
+function prepare_statements(tid)
+    if not sysbench.opt.skip_trx then
+        prepare_begin()
+        prepare_commit()
+    end
 
-    -- The top 13 elements in the queue must all be 'DQL' --
-    local j
-    for j=1, 13 do
-        
-        prepare_read_where_cond(queue[j]) 
-        prepare_for_each_table(queue[j])
+    local bool
+    for k, v in pairs(queue) do
+        if(v ~= nil and type(v) ~= "table") then
+            
+            bool = prepare_for_each_table(v)
+            if bool then
+                prepare_read_where_cond(v)
+            end
+        end
     end
 
 end
 
 
-function event()
+function event(tid)
 
-    -- 1 query per transaction --
-    local rng = sysbench.rand.default(1, 1000)
-    local no = rng%13 + 1
+    if not sysbench.opt.skip_trx then
+        begin()
+    end
+    
+    -- select SQL
+    while (true)
+    do
+        local j = increno%cnt + 1
 
-    if(queue[no] ~= nil) then
-        local relt = execute_point_selects(queue[no])
-        if(relt ~= nil) then
-            relt:free()
+        if(type(queue[j]) ~= "table") then
+            local relt = execute_point_selects(queue[j])
+            if(relt ~= nil) then
+                relt:free()
+            end
+
+            break
         end
+
+        increno = increno + 1
+        if increno >= 999999999 then
+            increno = 0 
+        end
+        
+    end
+    
+    if not sysbench.opt.skip_trx then
+        commit()
     end
 
-
-    --[[  -- 13 query per transaction --
-   
-    local j
-    for j=1, 13 do 
-        local relt = execute_point_selects(queue[j])
-        if relt ~= nil then
-            relt:free()
-        end
+    increno = increno + 1
+    if increno >= 999999999 then
+        increno = 0 
     end
-
-    -----END ]]
 
 end
 

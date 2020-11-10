@@ -21,59 +21,55 @@
 
 require("oltp_common")
 
-function prepare_statements()
+function prepare_statements(tid)
     if not sysbench.opt.skip_trx then
         prepare_begin()
         prepare_commit()
     end
 
+    local bool
     for k, v in pairs(queue) do
-        
-        if type(v) == "table" then
-            prepare_read_where_cond(v[1]) 
-            prepare_for_each_table(v[1])
-             
+        if(v ~= nil and type(v) == "table") then
+            
+            bool = prepare_for_each_table(v[1])
+            if bool then
+                prepare_read_where_cond(v[1])
+            end
         else
-            prepare_read_where_cond(v) 
-            prepare_for_each_table(v)
+            bool = prepare_for_each_table(v)
+            if bool then
+                prepare_read_where_cond(v)
+            end
         end
-        
     end
+
 end
 
 
 function event(tid)
 
-    local rng = sysbench.rand.default(1, 1000)
-    local no = rng%29 + 14 
-        
-    if(queue[no] ~= nil and type(queue[no]) == "table") 
-    then
-        if not sysbench.opt.skip_trx then
-            begin()
-        end
-
-        execute_index_update(tid, queue[no][1], 
-                                  queue[no][2], queue[no][3])
-        if not sysbench.opt.skip_trx then
-            commit()
-        end
+    if not sysbench.opt.skip_trx then
+        begin()
     end
 
-    -- The top 9 elements in the queue must all be 'DQL' --
-    local j
-    for j = 1, 9 do
-            
-        rng = sysbench.rand.default(1, 1000)
-        no = rng%13 + 1
-
-        if(queue[no] ~= nil and type(queue[no]) ~= "table") then
-
-            local relt = execute_point_selects(queue[no])
-            if(relt ~= nil) then
-                relt:free()
-            end
+    local j = increno%cnt + 1
+    if(queue[j] ~= nil and type(queue[j]) == "table") then
+        execute_index_update(tid, queue[j][1], 
+                                  queue[j][2], queue[j][3])
+    else
+        local relt = execute_point_selects(queue[j])
+        if(relt ~= nil) then
+            relt:free()
         end
+    end
+    
+    if not sysbench.opt.skip_trx then
+        commit()
+    end
+
+    increno = increno + 1
+    if increno >= 999999999 then
+        increno = 0 
     end
 
 end

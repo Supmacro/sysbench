@@ -1,6 +1,30 @@
 
 t = sysbench.sql.type
 stmt_defs = {
+    dml_cond_t01c01_pre = {
+                    "select c1 from t1 where mod(rand(), 100) = 1 limit 16000;"},
+    dml_cond_t01c02_pre = {
+                    "select c2 from t1 where mod(rand(), 100) = 2 limit 10000;"},
+    dml_cond_t01c03_pre = {
+                    "select c3 from t1 where mod(rand(), 100) = 3 limit 8000;"},
+    dml_cond_t01c12_pre = {
+                    "select c12 from t1 where mod(rand(), 100) = 4 limit 2000;"},
+    dml_cond_t03c01_pre = {
+                    "select c1 from t3 where mod(rand(), 100000) = 2 limit 4000;"},
+    dml_cond_t04c01_pre = {
+                    "select c1 from t4 where mod(rand(), 100000) = 2 limit 10000;"},
+    dml_cond_t04c02_pre = {
+                    "select c1 from t4 where mod(rand(), 100000) = 3 limit 4000;"},
+    dml_cond_t05c01_pre = {
+                    "select c1 from t5 where mod(rand(), 100000) = 2 limit 4000;"},
+    dml_cond_t06c01_pre = {
+                    "select c1 from t6 where mod(rand(), 100000) = 2 limit 2000;"},
+    dql_cond_t08c07_pre = {
+                    "select c7 from t8 where mod(rand(), 10000) = 2 limit 2000;"},
+    dql_cond_t09c02_pre = {
+                    "select c2 from t9 where mod(rand(),100) = 2 limit 2000;"},
+    dql_cond_t09c03_pre = {
+                    "select c3 from t9 where mod(rand(),100) = 3 limit 2000;"},
 
     dml_t1001_pre = {
                     "select c1 from t1 where mod(rand(), 100) = 1 limit ?;", 

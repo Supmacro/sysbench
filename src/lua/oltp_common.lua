@@ -102,6 +102,10 @@ end
 
 function prepare_for_each_table(key)
 
+    if(stmt[key] ~= nil) then
+        return false 
+    end
+
     stmt[key] = con:prepare(string.format(stmt_defs[key][1]))
     local nparam = #stmt_defs[key] - 1
     if nparam > 0 then
@@ -128,11 +132,13 @@ function prepare_for_each_table(key)
     if nparam > 0 then
         stmt[key]:bind_param(unpack(param[key]))
     end
+
+    return true 
    
 end
 
 
-function thread_init()
+function thread_init(tid)
     drv = sysbench.sql.driver()
     con = drv:connect()
 
@@ -142,8 +148,10 @@ function thread_init()
     stmt = {}
     param = {}
 
+    cnt = #queue
+    increno = 1
     -- This function is a 'callback' defined by individual benchmark scripts
-    prepare_statements()
+    prepare_statements(tid)
 end
 
 
@@ -199,7 +207,8 @@ local M14,M100 ="########xxxxxx",
 
 local NC = "const"
 
-queue = {"dql_t8001", 
+
+queue = {--[["dql_t8001", 
          "dql_t5001", 
          "dql_t3001", 
          "dql_t4001",
@@ -211,36 +220,93 @@ queue = {"dql_t8001",
          "dql_t1002", 
          "dql_t1003", 
          "dql_t1004",
-         "dql_t4004", 
+         "dql_t4004",--]]
          {"dml_t1001", true, {"2"}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t2001", true, {}},
          {"dml_t1002", true, {M50}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t2002", true, {}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t1003", true, {M11}},
          {"dml_t2003", true, {}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t1004", true, {"1"}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t2004", true, {}},
          {"dml_t1005", true, {}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t1006", false,{M64, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t2005", true, {}},
          {"dml_t1007", true, {NC, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t1008", true, {}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t1009", false,{M64, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
          {"dml_t2006", true, {}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t1010", true, {NC, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t4001", false,{M64, M64, M64, "0", M8}},
          {"dml_t4002", true, {NC, M64, M64, "1", M8}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t3001", false,{M64, M64, "0"}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t3002", true, {NC, M64, "0"}},
          {"dml_t4003", false,{M64, M64, M64, "0", M8}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t4004", true, {NC, M64, M64, "1", M8}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t4005", true, {M64}},
          {"dml_t5001", false,{M64, M100, "0"}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t5002", true, {NC, M100, "1"}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t6001", false,{M64, M100, "0"}},
          {"dml_t6002", true, {NC, M100, "1"}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
          {"dml_t7001", false,{M32, M14}},
-         {"dml_t8001", false,{M32, M64, M8, M100, "0", M64, M50, M64}}}
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
+         {"dml_t8001", false,{M32, M64, M8, M100, "0", M64, M50, M64}},
+         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
+         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004"}
+
+
+--[[ queue = {
+    "dml_cond_t01c01",
+    "dml_cond_t01c02",
+    "dml_cond_t01c03",
+    "dml_cond_t01c12",
+    "dml_cond_t03c01",
+    "dml_cond_t04c01",
+    "dml_cond_t04c02",
+    "dml_cond_t05c01",
+    "dml_cond_t06c01",
+    "dql_cond_t08c07",
+    "dql_cond_t09c02",
+    "dql_cond_t09c03"
+}
+--]]
 
 cache_top = "/usr/local/share/sysbench/cache_data/"
 function _IO(name, mode)
@@ -274,10 +340,10 @@ function prepare_read_where_cond(key)
     if(fd == nil) then
         return nil
     end
-       
-    where_set[key] = {}
+
     local line = ""
     local j = 1
+    where_set[key] = {}
 
     repeat
 
@@ -289,7 +355,7 @@ function prepare_read_where_cond(key)
         end
 
     until(line == nil)
- 
+
     max[key] = #where_set[key]
     fd:close()
 
@@ -322,7 +388,7 @@ function cmd_prepare()
         end
 
         prepare_for_each_table(lable)
-        param[lable][1]:set(cap)
+        --param[lable][1]:set(cap)
 
         local relt = stmt[lable]:execute()
         if (relt ~= nil) 
@@ -345,7 +411,7 @@ function cmd_prepare()
             fd = _IO(name, "a+")
             if(fd ~= nil) 
             then
-                for j = 1, cap do
+                for j = 1, 16000 do
                     local res = relt:fetch_row()
                     if(res == nil or res[1] == nil) then
                         break    

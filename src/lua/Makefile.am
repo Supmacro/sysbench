@@ -17,8 +17,8 @@
 SUBDIRS = internal
 
 dist_pkgdata_SCRIPTS = oltp_read_only.lua \
-             oltp_read_write.lua \
              oltp_write_only.lua \
+			 oltp_read_write.lua \
 			 oltp_test.sh
 
 dist_pkgdata_DATA = oltp_common.lua \

@@ -16,45 +16,61 @@
 -- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 -- ----------------------------------------------------------------------
--- Read/Write OLTP benchmark
+-- Write OLTP benchmark
 -- ----------------------------------------------------------------------
 
 require("oltp_common")
 
-function prepare_statements()
+function prepare_statements(tid)
     if not sysbench.opt.skip_trx then
         prepare_begin()
         prepare_commit()
     end
 
+    local bool
     for k, v in pairs(queue) do
-        
-        if type(v) == "table" then
-            prepare_read_where_cond(v[1]) 
-            prepare_for_each_table(v[1])
-             
+        if(v ~= nil and type(v) == "table") then
+            
+            bool = prepare_for_each_table(v[1])
+            if bool then
+                prepare_read_where_cond(v[1])
+            end
         end
-        
     end
+
 end
 
 
 function event(tid)
+    
+    if not sysbench.opt.skip_trx then
+        begin()
+    end
 
-    local rng = sysbench.rand.default(1, 1000)
-    local no = rng%29 + 14 
+    -- update and insert SQL
+    while(true)
+    do
+        local j = increno%cnt + 1
+        if(type(queue[j]) == "table") then
+            execute_index_update(tid, queue[j][1], 
+                                  queue[j][2], queue[j][3])
+            break 
+        end
         
-    if(queue[no] ~= nil and type(queue[no]) == "table") 
-    then
-        if not sysbench.opt.skip_trx then
-            begin()
+        increno = increno + 1
+        if increno >= 999999999 then
+            increno = 0 
         end
 
-        execute_index_update(tid, queue[no][1], 
-                                  queue[no][2], queue[no][3])
-        if not sysbench.opt.skip_trx then
-            commit()
-        end
+    end
+    
+    if not sysbench.opt.skip_trx then
+        commit()
+    end
+
+    increno = increno + 1
+    if increno >= 999999999 then
+        increno = 0 
     end
 
 end
