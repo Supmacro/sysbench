@@ -16,42 +16,19 @@
 -- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 -- ----------------------------------------------------------------------
--- Read-Only OLTP benchmark
+-- Delete-Only OLTP benchmark
 -- ----------------------------------------------------------------------
 
 require("oltp_common")
 
 function prepare_statements()
-   prepare_point_selects()
-
-   if not sysbench.opt.skip_trx then
-      prepare_begin()
-      prepare_commit()
-   end
-
-   if sysbench.opt.range_selects then
-      prepare_simple_ranges()
-      prepare_sum_ranges()
-      prepare_order_ranges()
-      prepare_distinct_ranges()
-   end
+   prepare_for_each_table("deletes")
 end
 
 function event()
-   if not sysbench.opt.skip_trx then
-      begin()
-   end
+   local tnum = sysbench.rand.uniform(1, sysbench.opt.tables)
+   local id = sysbench.rand.default(1, sysbench.opt.table_size)
 
-   execute_point_selects()
-
-   if sysbench.opt.range_selects then
-      execute_simple_ranges()
-      execute_sum_ranges()
-      execute_order_ranges()
-      execute_distinct_ranges()
-   end
-
-   if not sysbench.opt.skip_trx then
-      commit()
-   end
+   param[tnum].deletes[1]:set(id)
+   stmt[tnum].deletes:execute()
 end

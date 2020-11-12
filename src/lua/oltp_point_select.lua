@@ -16,42 +16,19 @@
 -- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 -- ----------------------------------------------------------------------
--- Read-Only OLTP benchmark
+-- OLTP Point Select benchmark
 -- ----------------------------------------------------------------------
 
 require("oltp_common")
 
 function prepare_statements()
+   -- use 1 query per event, rather than sysbench.opt.point_selects which
+   -- defaults to 10 in other OLTP scripts
+   sysbench.opt.point_selects=1
+
    prepare_point_selects()
-
-   if not sysbench.opt.skip_trx then
-      prepare_begin()
-      prepare_commit()
-   end
-
-   if sysbench.opt.range_selects then
-      prepare_simple_ranges()
-      prepare_sum_ranges()
-      prepare_order_ranges()
-      prepare_distinct_ranges()
-   end
 end
 
 function event()
-   if not sysbench.opt.skip_trx then
-      begin()
-   end
-
    execute_point_selects()
-
-   if sysbench.opt.range_selects then
-      execute_simple_ranges()
-      execute_sum_ranges()
-      execute_order_ranges()
-      execute_distinct_ranges()
-   end
-
-   if not sysbench.opt.skip_trx then
-      commit()
-   end
 end
