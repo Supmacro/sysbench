@@ -26,7 +26,7 @@
 # include <strings.h>
 #endif
 
-#include "xgci2.h"
+#include "xgci.h"
 #include "ctype.h"
 #include "sb_options.h"
 #include "db_driver.h"

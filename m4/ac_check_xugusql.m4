@@ -31,7 +31,7 @@ fi
 if test [ -n "$ac_cv_xugusql_libs" ]
 then
      AC_CACHE_CHECK([XuguSQL libraries], [ac_cv_xugusql_libs], [ac_cv_xugusql_libs=""])
-     XUGUSQL_LIBS="-L$ac_cv_xugusql_libs -lxgci2"
+     XUGUSQL_LIBS="-L$ac_cv_xugusql_libs -lxgci"
 fi
 
 # If some path is missing, try to autodetermine with xugusql_config
@@ -62,7 +62,7 @@ ERROR: cannot find XuguSQL libraries. If you want to compile with XuguSQL suppor
         if test [ -z "$ac_cv_xugusql_libs" ]
         then
             AC_MSG_CHECKING(XuguSQL linker flags)
-            XUGUSQL_LIBS="-L`${xuguconfig} --libdir` -lxgci2"
+            XUGUSQL_LIBS="-L`${xuguconfig} --libdir` -lxgci"
             AC_MSG_RESULT($XUGUSQL_LIBS)
         fi
     fi
