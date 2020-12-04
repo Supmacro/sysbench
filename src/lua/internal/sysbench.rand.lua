@@ -31,6 +31,7 @@ uint32_t sb_rand_pareto(uint32_t, uint32_t);
 uint32_t sb_rand_zipfian(uint32_t, uint32_t);
 uint32_t sb_rand_unique(void);
 void sb_rand_str(const char *, char *);
+void sb_rand_inc_str(const char *, char *);
 uint32_t sb_rand_varstr(char *, uint32_t, uint32_t);
 double sb_rand_uniform_double(void);
 ]]
@@ -67,6 +68,13 @@ function sysbench.rand.string(fmt)
    local buflen = #fmt
    local buf = ffi.new("uint8_t[?]", buflen)
    ffi.C.sb_rand_str(fmt, buf)
+   return ffi.string(buf, buflen)
+end
+
+function sysbench.rand.incstr(fmt)
+   local buflen = #fmt
+   local buf = ffi.new("uint8_t[?]", buflen)
+   ffi.C.sb_rand_inc_str(fmt, buf)
    return ffi.string(buf, buflen)
 end
 

@@ -138,7 +138,7 @@ function prepare_for_each_table(key)
 end
 
 
-function thread_init(tid)
+function thread_init()
     drv = sysbench.sql.driver()
     con = drv:connect()
 
@@ -148,10 +148,12 @@ function thread_init(tid)
     stmt = {}
     param = {}
 
-    cnt = #queue
+    qcap = #dql
+    mcap = #dml
+
     increno = 1
     -- This function is a 'callback' defined by individual benchmark scripts
-    prepare_statements(tid)
+    prepare_statements()
 end
 
 
@@ -193,236 +195,152 @@ function commit()
 end
 
 
-local M8,M11,M32,M50,M64 = "@@@@@@@@", "@@@@@@@@xxx",
-                           "@@@@@@@@xxxxxxxx-xxxxxxxxxxxxxxx",
-                           "@@@@@@@@xxxxxxxx-xxxxxxxxxxxxxxxx-" ..
-                           "xxxxxxxxxxxxxxxx",
-                           "@@@@@@@@xxxxxxxx-xxxxxxxxxxxxxxxx-" ..
-                           "xxxxxxxxxxxxxxxx-xxxxxxxxxxxxx"
+local m8, m11 = "@@@@@@@@", "@@@@@@@@@@@"
 
-local M14,M100 ="########xxxxxx", 
-                "@@@@@@@@xxxxxxxx-xxxxxxxxxxxxxxxx-" ..
-                "xxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxx-" ..
-                "xxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxx" 
+local m32 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@"
+local m50 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc"
+local m64 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc-cccc"
+local m14 = "####-@@@@@@@@"
 
-local NC = "const"
+local m100 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccc"
 
+local m200 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccc"
 
-queue = {{"dml_t1001", true, {"2"}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t2001", true, {}},
-         {"dml_t1002", true, {M50}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t2002", true, {}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t1003", true, {M11}},
-         {"dml_t2003", true, {}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t1004", true, {"1"}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t2004", true, {}},
-         {"dml_t1005", true, {}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t1006", false,{M64, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t2005", true, {}},
-         {"dml_t1007", true, {NC, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t1008", true, {}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t1009", false,{M64, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
-         {"dml_t2006", true, {}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t1010", true, {NC, M64, M64, M50, M11,"0", M100,"1", M8 , "1", M32}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t4001", false,{M64, M64, M64, "0", M8}},
-         {"dml_t4002", true, {NC, M64, M64, "1", M8}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t3001", false,{M64, M64, "0"}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t3002", true, {NC, M64, "0"}},
-         {"dml_t4003", false,{M64, M64, M64, "0", M8}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t4004", true, {NC, M64, M64, "1", M8}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t4005", true, {M64}},
-         {"dml_t5001", false,{M64, M100, "0"}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t5002", true, {NC, M100, "1"}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t6001", false,{M64, M100, "0"}},
-         {"dml_t6002", true, {NC, M100, "1"}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t7001", false,{M32, M14}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004",
-         {"dml_t8001", false,{M32, M64, M8, M100, "0", M64, M50, M64}},
-         "dql_t8001", "dql_t5001", "dql_t3001", "dql_t4001","dql_t4002", "dql_t9001", "dql_t9002", 
-         "dql_t1001", "dql_t4003", "dql_t1002", "dql_t1003", "dql_t1004", "dql_t4004"}
+local m4000 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                "-cccccccc-cccccccc-cccccccc-cccc"
+
+local i64 = "0000000000000000000000000000000000000" .. 
+                        "000000000000000001000000000"
+local i32 = "00000000000000000000001000000000"
 
 
---[[ queue = {
-    "dml_cond_t01c01",
-    "dml_cond_t01c02",
-    "dml_cond_t01c03",
-    "dml_cond_t01c12",
-    "dml_cond_t03c01",
-    "dml_cond_t04c01",
-    "dml_cond_t04c02",
-    "dml_cond_t05c01",
-    "dml_cond_t06c01",
-    "dql_cond_t08c07",
-    "dql_cond_t09c02",
-    "dql_cond_t09c03"
-}
---]]
-
-cache_top = "/usr/local/share/sysbench/cache_data/"
-function _IO(name, mode)
-
-    local fd = io.open(
-                string.format("%swhere_cache_%s.txt", cache_top, name),
-                mode)
-    return fd
-end
-
-function _EOF(strv)
-
-    if(string.sub(strv, 1, 1) ~= '\000') then
-        return false 
-    end
-            
-   return true
-end
+dql = {
+            {"q8001", i64},
+            {"q5001", i64},
+            {"q3001", i64},
+            {"q4001", i64},
+            {"q4002", i64},
+            {"q9001", i64},
+            {"q9002", i64},
+            {"q1001", i64},
+            {"q4003", i64},
+            {"q1002", i64},
+            {"q1003", i64},
+            {"q1004", i64},
+            {"q4004", i64}}
 
 
-max = {}
-min = 1 
-cap = 2000
-where_set = {}
-
---Read data from the cache file, these data are generally column data 
---that needs to be conditionally indexed later
-function prepare_read_where_cond(key)
-
-    local fd = _IO(key, "r")
-    if(fd == nil) then
-        return nil
-    end
-
-    local line = ""
-    local j = 1
-    where_set[key] = {}
-
-    repeat
-
-        line = fd:read("l")
-        if(line ~= nil) 
-        then
-            where_set[key][j] = line
-            j = j +1
-        end
-
-    until(line == nil)
-
-    max[key] = #where_set[key]
-    fd:close()
-
-end
+dml = {
+            {"m1001", i64, {"2", "?"}},
+            {"m2001", i64, {"?"}},
+            {"m1002", i64, {m50, "?"}},
+            {"m2002", i64, {"?"}},
+            {"m1003", i64, {m11, "?"}},
+            {"m2003", i64, {"?"}},
+            {"m1004", i64, {"1", "?"}},
+            {"m2004", i64, {"?"}},
+            {"m1005", i64, {"?"}},
+            {"m1006", i32,
+                {m64, m64, m64, m50, m11,"0", m100,"1", m8 , "1", m32}
+            },
+            {"m2005", i64, {"?"}},
+            {"m1007", i64, 
+                {"?", m64, m64, m50, m11, "0", m100,"1", m8 , "1", m32, "?"}
+            },
+            {"m1008", i64, {"?"}},
+            {"m1009", i32,
+                {m64, m64, m64, m50, m11, "0", m100, "1", m8, "1", m32}
+            },
+            {"m2006", i64, {"?"}},
+            {"m1010", i64, 
+                {"?", m64, m64, m50, m11, "0", m100, "1", m8, "1", m32, "?"}
+            },
+            {"m4001", i32, {m64, m64, m64, "0", m8}},
+            {"m4002", i64, {"?", m64, m64, "1", m8, "?"}},
+            {"m3001", i32, {m64, m64, "0"}},
+            {"m3002", i64, {"?", m64, "0", "?"}},
+            {"m4003", i32, {m64, m64, m64, "0", m8}},
+            {"m4004", i64, {"?", m64, m64, "1", m8, "?"}},
+            {"m4005", i64, {m64, "?"}},
+            {"m5001", i32, {m64, m4000, "0"}},
+            {"m5002", i64, {"?", m4000, "1", "?"}},
+            {"m6001", i32, {m64, m4000, "0"}},
+            {"m6002", i64, {"?", m4000, "1", "?"}},
+            {"m7001", i32, {m32, m14}},
+            {"m8001", i32,
+                {m32, m64, m8, m200, "0", m64, m50, m64}
+            }}
 
 
 -- Prepare the dataset. This command supports parallel execution, i.e. will
 -- benefit from executing with --threads > 1 as long as --tables > 1
 function cmd_prepare()
 
-    os.execute(string.format("mkdir -p %s", cache_top))
     drv = sysbench.sql.driver()
     con = drv:connect()
 
-    param = {}
-    stmt = {}
-
-    for k, v in pairs(queue) do
-
-        local lable
-        if(type(v) == "table") then
-            lable = v[1] .. "_pre"
-        else
-            lable = v .. "_pre"
-        end
-
-        if(stmt_defs[lable] == nil) 
-        then
-            goto unit
-        end
-
-        prepare_for_each_table(lable)
-        --param[lable][1]:set(cap)
-
-        local relt = stmt[lable]:execute()
-        if (relt ~= nil) 
-        then
-            local j
-            local name
-
-            if(type(v) == "table") then
-                name = v[1]
-            else
-                name = v
-            end
-
-            local fd = _IO(name, "w+")
-
-            if(fd ~= nil) then
-                fd:close()
-            end
-
-            fd = _IO(name, "a+")
-            if(fd ~= nil) 
-            then
-                for j = 1, 16000 do
-                    local res = relt:fetch_row()
-                    if(res == nil or res[1] == nil) then
-                        break    
-                    end
-
-                    local bool = _EOF(res[1])
-                    if(not bool) then
-                        fd:write(string.format("%s\n", res[1]))
-                    end
-
-                end
-
-                fd:close()
-            end
-
-            io.flush()
-            relt:free()
-        end
-
-::unit::
-
-    end
-
-    close_statements()
     con:disconnect() 
 
 end
@@ -443,54 +361,33 @@ sysbench.cmdline.commands = {
 }
 
 
--- +------------------------------------------------+
--- |  DQL: POINT SELECT                             |
--- +------------------------------------------------+
-function execute_point_selects(key)
+--  DQL: POINT SELECT 
+function execute_point_selects(K, S)
 
-    local seq = sysbench.rand.default(min, max[key])
-    if(where_set[key][seq] == nil) then
-        return nil
-    end
+    param[K][1]:set_rand_inc_str(S)
+    row = stmt[K]:execute()
 
-    param[key][1]:set(where_set[key][seq])
-    relt = stmt[key]:execute()
-    local res = relt:fetch_row()
-    return relt 
+    local res = row:fetch_row()
+    return row 
 
 end
 
--- +------------------------------------------------+
--- |  DML: UPDATE                                   |
--- +------------------------------------------------+
-function execute_index_update(tid, key, bool, mode)
+--  DML: UPDATE  
+function execute_index_update(kv, bv, tab)
 
-    local seq,i,j = tid+1, 0, 0
+    local Idx = sysbench.rand.incstr(bv) 
 
-    for j = 1, #mode do
-        if(j == 1 and mode[j] == NC) then
-            if(where_set[key][seq] == nil) then
-                return nil
-            end
-
-            param[key][j]:set(where_set[key][seq])
+    for j=1, #tab 
+    do
+        if tab[j] == "?" then
+            param[kv][j]:set(Idx)
         else
-            param[key][j]:set_rand_str(mode[j])
-        end
-        
-        i = i + 1
-    end
-
-    if(bool) then
-        if(where_set[key][seq] == nil) then
-            return nil
+            param[kv][j]:set_rand_str(tab[j])
         end
 
-        j = i + 1
-        param[key][j]:set(where_set[key][seq])
     end
+
     stmt[key]:execute()
-
 end
 
 

@@ -27,20 +27,14 @@ function prepare_statements(tid)
         prepare_commit()
     end
 
-    local bool
-    for k, v in pairs(queue) do
-        if(v ~= nil and type(v) == "table") then
-            
-            bool = prepare_for_each_table(v[1])
-            if bool then
-                prepare_read_where_cond(v[1])
-            end
-        else
-            bool = prepare_for_each_table(v)
-            if bool then
-                prepare_read_where_cond(v)
-            end
-        end
+    -- READ 
+    for k, v in pairs(dql) do
+        prepare_for_each_table(v[1])
+    end
+
+    -- WRITE 
+    for k, v in pairs(dml) do
+        prepare_for_each_table(v[1])
     end
 
 end
@@ -52,24 +46,22 @@ function event(tid)
         begin()
     end
 
-    local j = increno%cnt + 1
-    if(queue[j] ~= nil and type(queue[j]) == "table") then
-        execute_index_update(tid, queue[j][1], 
-                                  queue[j][2], queue[j][3])
-    else
-        local relt = execute_point_selects(queue[j])
-        if(relt ~= nil) then
-            relt:free()
-        end
-    end
+    local no = tid % (qcap + mcap) + 1
     
-    if not sysbench.opt.skip_trx then
-        commit()
+    if no <= 13 
+    then
+        local row = execute_point_selects(dql[no][1], dql[no][2])
+        if row ~= nil then
+            row:free()
+        end
+    else
+        
+        no = no - 13
+        execute_index_update(dml[no][1], dml[no][2], dml[3])
     end
 
-    increno = increno + 1
-    if increno >= 999999999 then
-        increno = 0 
+    if not sysbench.opt.skip_trx then
+        commit()
     end
 
 end

@@ -377,6 +377,24 @@ function sql_param.set_rand_str(self, fmt)
    end
 end
 
+function sql_param.set_rand_inc_str(self, fmt)
+   local sql_type = sysbench.sql.type
+   local btype = self.type
+
+   self.is_null[0] = false
+
+   if btype == sql_type.CHAR or
+      btype == sql_type.VARCHAR
+   then
+      local len = #fmt
+      len = self.max_len < len and self.max_len or len
+      ffi.C.sb_rand_inc_str(fmt, self.buffer)
+      self.data_len[0] = len
+   else
+      error("Unsupported argument type: " .. btype, 2)
+   end
+end
+
 sql_param.__index = sql_param
 sql_param.__tostring = function () return '<sql_param>' end
 
@@ -406,6 +424,7 @@ function statement_methods.bind_create(self, btype, max_len)
       btype == sql_type.VARCHAR
    then
       param.type = sql_type.VARCHAR
+      max_len = max_len + 1
       param.buffer = ffi.new('char[?]', max_len)
       param.max_len = max_len
    else

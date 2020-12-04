@@ -21,21 +21,14 @@
 
 require("oltp_common")
 
-function prepare_statements(tid)
+function prepare_statements()
     if not sysbench.opt.skip_trx then
         prepare_begin()
         prepare_commit()
     end
 
-    local bool
-    for k, v in pairs(queue) do
-        if(v ~= nil and type(v) ~= "table") then
-            
-            bool = prepare_for_each_table(v)
-            if bool then
-                prepare_read_where_cond(v)
-            end
-        end
+    for k, v in pairs(dql) do
+        prepare_for_each_table(v[1])
     end
 
 end
@@ -46,35 +39,17 @@ function event(tid)
     if not sysbench.opt.skip_trx then
         begin()
     end
-    
+   
+    local no = tid % qcap + 1;
+
     -- select SQL
-    while (true)
-    do
-        local j = increno%cnt + 1
-
-        if(type(queue[j]) ~= "table") then
-            local relt = execute_point_selects(queue[j])
-            if(relt ~= nil) then
-                relt:free()
-            end
-
-            break
-        end
-
-        increno = increno + 1
-        if increno >= 999999999 then
-            increno = 0 
-        end
-        
+    local row = execute_point_selects(dql[no][1], dql[no][2])
+    if(row ~= nil) then
+        row:free()
     end
     
     if not sysbench.opt.skip_trx then
         commit()
-    end
-
-    increno = increno + 1
-    if increno >= 999999999 then
-        increno = 0 
     end
 
 end

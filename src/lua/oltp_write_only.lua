@@ -21,21 +21,15 @@
 
 require("oltp_common")
 
-function prepare_statements(tid)
+function prepare_statements()
     if not sysbench.opt.skip_trx then
         prepare_begin()
         prepare_commit()
     end
 
-    local bool
-    for k, v in pairs(queue) do
-        if(v ~= nil and type(v) == "table") then
+    for k, v in pairs(dml) do
             
-            bool = prepare_for_each_table(v[1])
-            if bool then
-                prepare_read_where_cond(v[1])
-            end
-        end
+        prepare_for_each_table(v[1])
     end
 
 end
@@ -47,30 +41,13 @@ function event(tid)
         begin()
     end
 
-    -- update and insert SQL
-    while(true)
-    do
-        local j = increno%cnt + 1
-        if(type(queue[j]) == "table") then
-            execute_index_update(tid, queue[j][1], 
-                                  queue[j][2], queue[j][3])
-            break 
-        end
-        
-        increno = increno + 1
-        if increno >= 999999999 then
-            increno = 0 
-        end
+    local no = tid % mcap + 1;
 
-    end
+    -- update and insert SQL
+    execute_index_update(dml[no][1], dml[no][2], dml[no][3])
     
     if not sysbench.opt.skip_trx then
         commit()
-    end
-
-    increno = increno + 1
-    if increno >= 999999999 then
-        increno = 0 
     end
 
 end
