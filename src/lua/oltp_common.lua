@@ -197,79 +197,79 @@ end
 
 local m8, m11 = "@@@@@@@@", "@@@@@@@@@@@"
 
-local m32 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@"
-local m50 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc"
-local m64 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc-cccc"
-local m14 = "####-@@@@@@@@"
+local m32 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@"
+local m50 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc"
+local m64 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc-cccc"
+local m14 = "#####-@@@@@@@@"
 
-local m100 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+local m100 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
                 "-cccccccc-cccccccc-cccccccc-cccccccc-cccc"
 
-local m200 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccc"
+local m200 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+                  "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                  "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                  "-cccccccc-cccccccc-cccccccc-cccc"
 
-local m4000 = "####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
-                "-cccccccc-cccccccc-cccccccc-cccc"
+local m4000 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
+                   "-cccccccc-cccccccc-cccccccc-cccc"
 
 local i64 = "0000000000000000000000000000000000000" .. 
                         "000000000000000001000000000"

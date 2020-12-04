@@ -284,11 +284,12 @@ void sb_rand_str(const char *fmt, char *buf)
 void sb_rand_inc_str(const char *fmt, char *buf)
 {
     char  std[16] = {0}, tmp[16] = {0};
+    int   max = atoi(fmt);
 
     sprintf(tmp, "%du", strlen(fmt));
     strcpy(std, "%0");
     strcat(std, tmp);
-    sprintf(buf, std, sb_rand_uniform(1, 1000000000));
+    sprintf(buf, std, sb_rand_uniform(1, max));
 }
 
 
