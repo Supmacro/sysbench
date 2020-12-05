@@ -57,7 +57,7 @@ function event(tid)
     else
         
         no = no - 13
-        execute_index_update(dml[no][1], dml[no][2], dml[3])
+        execute_index_update(dml[no][1], dml[no][2], dml[no][3])
     end
 
     if not sysbench.opt.skip_trx then
