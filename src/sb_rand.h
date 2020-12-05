@@ -71,6 +71,5 @@ uint32_t sb_rand_unique(void);
 uint32_t sb_rand_varstr(char *, uint32_t, uint32_t);
 
 void sb_rand_str(const char *, char *);
-void sb_rand_inc_str(const char *, char *);
 
 #endif /* SB_RAND_H */

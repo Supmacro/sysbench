@@ -280,19 +280,6 @@ void sb_rand_str(const char *fmt, char *buf)
 }
 
 
-/* Self-increasing integer string */
-void sb_rand_inc_str(const char *fmt, char *buf)
-{
-    char  std[16] = {0}, tmp[16] = {0};
-    int   max = atoi(fmt);
-
-    sprintf(tmp, "%du", strlen(fmt));
-    strcpy(std, "%0");
-    strcat(std, tmp);
-    sprintf(buf, std, sb_rand_uniform(1000000000, max));
-}
-
-
 /*
   Generates a random string of ASCII characters between '0' and 'z' of a length
   between min and max. buf should have enough room for max len bytes. Returns

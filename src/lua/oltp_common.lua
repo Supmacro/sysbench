@@ -271,16 +271,16 @@ local m4000 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
                    "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
                    "-cccccccc-cccccccc-cccccccc-cccc"
 
-local i641 = "0000000000000000000000000000000000000000000000000000001001928805"
-local i642 = "0000000000000000000000000000000000000000000000000000001000100316"
-local i643 = "0000000000000000000000000000000000000000000000000000001580904251"
-local i644 = "0000000000000000000000000000000000000000000000000000001912919966"
-local i645 = "0000000000000000000000000000000000000000000000000000001320000000"
-local i646 = "0000000000000000000000000000000000000000000000000000001320000000"
-local i647 = "0000000000000000000000000000000000000000000000000000001000225858"
-local i648 = "0000000000000000000000000000000000000000000000000000001328284687"
-local i649 = "0000000000000000000000000000000000000000000000000000001000428158"
-local i32 = "00000000000000000000001000000000"
+local i641 = 1001928805
+local i642 = 1000100316
+local i643 = 1580904251
+local i644 = 1912919966
+local i645 = 1320000000
+local i646 = 1320000000
+local i647 = 1000225858
+local i648 = 1328284687
+local i649 = 1000428158
+local i32 = 1000000000
 
 
 dql = {
@@ -368,26 +368,30 @@ sysbench.cmdline.commands = {
 }
 
 
---  DQL: POINT SELECT 
-function execute_point_selects(K, S)
+--point select  
+function execute_point_selects(K, I)
+    
+    local Inx = string.format("%064d", 
+                sysbench.rand.uniform(1000000000, I))
 
-    param[K][1]:set_rand_inc_str(S)
+    param[K][1]:set(Inx)
     row = stmt[K]:execute()
 
     local res = row:fetch_row()
-    return row 
-
+    return row
 end
 
---  DML: UPDATE  
+
+--update index, insert 
 function execute_index_update(kv, bv, tab)
 
-    local Idx = sysbench.rand.incstr(bv) 
+    local Inx = string.format("%064d", 
+                sysbench.rand.uniform(1000000000, I))
 
     for j=1, #tab 
     do
         if tab[j] == "?" then
-            param[kv][j]:set(Idx)
+            param[kv][j]:set(Inx)
         else
             param[kv][j]:set_rand_str(tab[j])
         end
