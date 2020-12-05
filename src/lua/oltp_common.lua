@@ -386,7 +386,7 @@ end
 function execute_index_update(kv, bv, tab)
 
     local Inx = string.format("%064d", 
-                sysbench.rand.uniform(1000000000, I))
+                sysbench.rand.uniform(1000000000, bv))
 
     for j=1, #tab 
     do
@@ -398,7 +398,7 @@ function execute_index_update(kv, bv, tab)
 
     end
 
-    stmt[key]:execute()
+    stmt[kv]:execute()
 end
 
 
