@@ -289,7 +289,7 @@ void sb_rand_inc_str(const char *fmt, char *buf)
     sprintf(tmp, "%du", strlen(fmt));
     strcpy(std, "%0");
     strcat(std, tmp);
-    sprintf(buf, std, sb_rand_uniform(1, max));
+    sprintf(buf, std, sb_rand_uniform(1000000000, max));
 }
 
 
