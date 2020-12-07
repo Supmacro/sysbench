@@ -50,14 +50,14 @@ function event(tid)
     
     if no <= 13 
     then
-        local row = execute_point_selects(dql[no][1], dql[no][2])
+        local row = execute_point_selects(dql[no][1], dql[no][2], dql[no][3])
         if row ~= nil then
             row:free()
         end
     else
         
         no = no - 13
-        execute_index_update(dml[no][1], dml[no][2], dml[no][3])
+        execute_index_update(dml[no][1], dml[no][2], dml[no][3], dml[no][4])
     end
 
     if not sysbench.opt.skip_trx then

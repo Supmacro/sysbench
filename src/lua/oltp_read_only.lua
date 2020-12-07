@@ -43,7 +43,7 @@ function event(tid)
     local no = tid % qcap + 1;
 
     -- select SQL
-    local row = execute_point_selects(dql[no][1], dql[no][2])
+    local row = execute_point_selects(dql[no][1], dql[no][2], dql[no][3])
     if(row ~= nil) then
         row:free()
     end

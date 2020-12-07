@@ -44,7 +44,7 @@ function event(tid)
     local no = tid % mcap + 1;
 
     -- update and insert SQL
-    execute_index_update(dml[no][1], dml[no][2], dml[no][3])
+    execute_index_update(dml[no][1], dml[no][2], dml[no][3], dml[no][4])
     
     if not sysbench.opt.skip_trx then
         commit()
