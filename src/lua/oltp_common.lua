@@ -195,22 +195,22 @@ function commit()
 end
 
 
-local m8, m11 = "@@@@@@@@", "@@@@@@@@@@@"
+local m8, m11 = "12345678", "0123456789A"
 
-local m32 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@"
-local m50 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc"
-local m64 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc-cccc"
-local m14 = "#####-@@@@@@@@"
+local m32 = "00000-01234567-89ABCDEF-GHIJKLMN"
+local m50 = "00000-01234567-89ABCDEF-GHIJKLMN-cccccccc-cccccccc"
+local m64 = "00000-01234567-89ABCDEF-GHIJKLMN-cccccccc-cccccccc-cccccccc-cccc"
+local m14 = "00000-01234567"
 
-local m100 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+local m100 = "00000-01234567-89ABCDEF-GHIJKLMN-cccccccc-cccccccc-cccccccc" ..
                 "-cccccccc-cccccccc-cccccccc-cccccccc-cccc"
 
-local m200 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+local m200 = "00000-01234567-89ABCDEF-GHIJKLMN-cccccccc-cccccccc-cccccccc" ..
                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
                   "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
                   "-cccccccc-cccccccc-cccccccc-cccc"
 
-local m4000 = "#####-@@@@@@@@-@@@@@@@@-@@@@@@@@-cccccccc-cccccccc-cccccccc" ..
+local m4000 = "00000-01234567-89ABCDEF-GHIJKLMN-cccccccc-cccccccc-cccccccc" ..
                    "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
                    "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
                    "-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc-cccccccc" ..
@@ -359,9 +359,16 @@ sysbench.cmdline.commands = {
 
 --point select  
 function execute_point_selects(K, IMIN, IMAX)
-    
-    local Inx = string.format("%064d", 
+   
+    local Inx
+
+    if K == "q1001" then
+        Inx = string.format("%032d", 
                 sysbench.rand.uniform(IMIN, IMAX))
+    else
+        Inx = string.format("%064d", 
+                sysbench.rand.uniform(IMIN, IMAX))
+    end
 
     param[K][1]:set(Inx)
     row = stmt[K]:execute()
@@ -382,7 +389,7 @@ function execute_index_update(kv, IMIN, IMAX, tab)
         if tab[j] == "?" then
             param[kv][j]:set(Inx)
         else
-            param[kv][j]:set_rand_str(tab[j])
+            param[kv][j]:set(tab[j])
         end
 
     end

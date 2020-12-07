@@ -51,9 +51,7 @@ function event(tid)
     if no <= 13 
     then
         local row = execute_point_selects(dql[no][1], dql[no][2], dql[no][3])
-        if row ~= nil then
-            row:free()
-        end
+        row:free()
     else
         
         no = no - 13

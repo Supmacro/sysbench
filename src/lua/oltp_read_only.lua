@@ -44,9 +44,7 @@ function event(tid)
 
     -- select SQL
     local row = execute_point_selects(dql[no][1], dql[no][2], dql[no][3])
-    if(row ~= nil) then
-        row:free()
-    end
+    row:free()
     
     if not sysbench.opt.skip_trx then
         commit()
