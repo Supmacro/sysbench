@@ -37,7 +37,7 @@ sysbench comes with the following bundled benchmarks:
     # 
     ./configure [options...]
     # [example]Join xugu driver support:
-    # ./configure --prefix=/opt/sysbench --without-mysql --with-xugusql --with-xugusql-libs=/usr/lib64 
+    # ./configure --without-mysql --with-xugusql --with-xugusql-libs=/usr/lib64 
     #             --with-xugusql-includes=/usr/include
     make 
     make install
