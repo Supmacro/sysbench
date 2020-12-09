@@ -46,16 +46,15 @@ function event(tid)
         begin()
     end
 
-    local no = tid % (qcap + mcap) + 1
-    
-    if no <= 13 
-    then
-        local row = execute_point_selects(dql[no][1], dql[no][2], dql[no][3])
+    local no = tid % mcap + 1
+    local j = no
+
+    execute_index_update(dml[j][1], dml[j][2], dml[j][3], dml[j][4])
+
+    no = tid % 5 + 1
+    for j = no, no+8 do
+        local row = execute_point_selects(dql[j][1], dql[j][2], dql[j][3])
         row:free()
-    else
-        
-        no = no - 13
-        execute_index_update(dml[no][1], dml[no][2], dml[no][3], dml[no][4])
     end
 
     if not sysbench.opt.skip_trx then
